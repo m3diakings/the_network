@@ -171,6 +171,22 @@ function phoneHref(phone: string) {
   const digits = phone.replace(/\D/g, '')
   return `tel:${digits}`
 }
+
+const listingsCtaUi = {
+  root: 'rounded-none ring-0 shadow-none overflow-visible',
+  container:
+    '!px-0 !py-16 sm:!py-20 lg:!py-28 gap-8 sm:gap-16 flex flex-col',
+  title: 'text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl'
+}
+
+const listingsCtaLinks = [
+  {
+    label: 'List your business',
+    to: '/submit-business',
+    icon: 'i-lucide-arrow-right',
+    size: 'lg' as const
+  }
+]
 </script>
 
 <template>
@@ -180,12 +196,8 @@ function phoneHref(phone: string) {
         headline="Business Directory"
         title="Trade Companies in Florida"
         description="Browse trusted local businesses with quick access to contact info and websites."
+        :ui="{ root: 'border-b-0' }"
       />
-      <div class="mt-4">
-        <UButton to="/submit-business" icon="i-lucide-plus">
-          Submit Your Business
-        </UButton>
-      </div>
 
       <UPageBody class="mt-6 pb-16">
         <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-default/70 bg-elevated/40 p-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -447,5 +459,18 @@ function phoneHref(phone: string) {
         </div>
       </UPageBody>
     </UContainer>
+
+    <UPageCTA
+      variant="naked"
+      description="Get in front of Florida homeowners actively searching for licensed, insured trade pros. Free standard listings, reviewed in about a day."
+      :links="listingsCtaLinks"
+      :ui="listingsCtaUi"
+    >
+      <template #title>
+        Run a trade business?
+        <br>
+        Get on this list.
+      </template>
+    </UPageCTA>
   </UPage>
 </template>

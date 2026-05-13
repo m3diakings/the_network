@@ -125,37 +125,37 @@ const discoveryFeatures = [
   }
 ]
 
-const businessFeatures = [
+const experienceFeatures = [
   {
-    title: 'Credibility built in',
+    title: 'Always free to browse',
     description:
-      'Upload your license, insurance, and logo once. Homeowners see proof of trust before they ever pick up the phone.',
-    icon: 'i-lucide-file-badge'
+      'No signup, no paywall, no "unlock pricing" gotchas. Browse every listing and call any pro at no cost.',
+    icon: 'i-lucide-circle-dollar-sign'
   },
   {
-    title: 'Featured placements',
-    description: 'Upgrade to a featured spot in the sidebar to stay front-and-center when homeowners are ready to hire.',
-    icon: 'i-lucide-sparkles'
+    title: 'Your info stays yours',
+    description: 'No lead forms, no resold contact details. You reach pros directly through their own phone and website.',
+    icon: 'i-lucide-lock'
   },
   {
-    title: 'Found by category',
-    description: 'Show up everywhere homeowners look — plumbing, electrical, HVAC, roofing, and more.',
-    icon: 'i-lucide-compass'
+    title: 'Help when you need it',
+    description: 'Many listings cover after-hours and emergency calls — handy when the water heater quits on a Sunday night.',
+    icon: 'i-lucide-clock'
   }
 ]
 
 const steps = [
   {
-    title: 'Pick your trade',
-    description: 'Choose the category that matches what you do — plumbing, electrical, HVAC, roofing, and more.'
+    title: 'Search by trade or area',
+    description: 'Pick a category — plumbing, electrical, HVAC, roofing — or browse the full directory.'
   },
   {
-    title: 'Upload license & insurance',
-    description: 'Drop in your credentials, a logo, and a short bio. We review every submission before it goes public.'
+    title: 'Compare verified pros',
+    description: 'Every listing shows license, insurance, coverage, and bio so you can decide before you call.'
   },
   {
-    title: 'Start taking calls',
-    description: 'Once approved, your listing is live across The Network with tap-to-call and website links wired up.'
+    title: 'Call or visit directly',
+    description: 'Tap-to-call or open their website. No middleman, no resold leads — your conversation, your terms.'
   }
 ]
 
@@ -167,22 +167,22 @@ const faqItems: AccordionItem[] = [
       'Every business uploads a license and insurance document during signup. We review the paperwork before the listing is approved.'
   },
   {
-    label: 'Can customers reach me directly?',
-    icon: 'i-lucide-phone',
-    content:
-      'Yes — your phone number and website sit on every listing with tap-to-call buttons. Leads come straight to you, no middleman.'
-  },
-  {
-    label: 'What does a listing cost?',
+    label: 'Does it cost anything to find a pro?',
     icon: 'i-lucide-circle-dollar-sign',
     content:
-      'A standard listing is free. Featured placements that pin you to the sidebar are a paid upgrade — pricing details are sent after you submit.'
+      'No. Searching, browsing, and contacting any business on The Network is free for homeowners — no signup required.'
+  },
+  {
+    label: 'Will my contact info be sold or shared?',
+    icon: 'i-lucide-lock',
+    content:
+      'No. There are no lead forms — when you tap to call or visit a website, you go directly to the business. We never resell your information.'
   },
   {
     label: 'Which trades do you cover?',
     icon: 'i-lucide-cloud-sun',
     content:
-      'We currently list plumbing, electrical, HVAC, and roofing across Florida. New trades are added based on demand from homeowners and contractors.'
+      'We currently list plumbing, electrical, HVAC, and roofing across Florida. New trades are added based on demand from homeowners.'
   }
 ]
 
@@ -205,16 +205,9 @@ const landingCtaUi = {
 
 const ctaLinks = [
   {
-    label: 'Submit your business',
-    to: '/submit-business',
-    icon: 'i-lucide-arrow-right',
-    size: 'lg' as const
-  },
-  {
-    label: 'Browse listings',
+    label: 'Browse the directory',
     to: '/listings',
-    color: 'neutral' as const,
-    variant: 'outline' as const,
+    icon: 'i-lucide-arrow-right',
     size: 'lg' as const
   }
 ]
@@ -231,7 +224,7 @@ const ctaLinks = [
           />
         </div>
 
-        <UContainer class="py-20 sm:py-28 lg:py-36">
+        <UContainer class="py-20 sm:py-24 lg:py-24">
           <div class="mx-auto flex max-w-3xl flex-col items-center text-center">
             <div class="inline-flex items-center gap-2 rounded-full border border-default/70 bg-default/80 px-3 py-1 text-xs font-semibold backdrop-blur">
               <span class="relative inline-flex size-2">
@@ -263,17 +256,6 @@ const ctaLinks = [
                 class="sm:w-auto"
               >
                 Find a pro
-              </UButton>
-              <UButton
-                to="/submit-business"
-                size="xl"
-                color="neutral"
-                variant="outline"
-                icon="i-lucide-plus"
-                block
-                class="sm:w-auto"
-              >
-                List your business
               </UButton>
             </div>
 
@@ -399,7 +381,7 @@ const ctaLinks = [
           class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
         >
           <img
-            src="/images/why_us.png"
+            src="/images/whyus.png"
             alt="Verified local pros on The Network"
             class="absolute inset-0 size-full object-cover object-center"
             loading="lazy"
@@ -423,10 +405,10 @@ const ctaLinks = [
               How it works
             </p>
             <h2 class="text-3xl font-semibold tracking-tight text-white lg:text-5xl">
-              Get listed in three steps
+              Find help in three steps
             </h2>
             <p class="mx-auto max-w-3xl text-base text-white/80">
-              From submission to live listing, most contractors are up on The Network within a day. Here's the path.
+              From search to scheduled visit — usually within a single phone call.
             </p>
           </div>
 
@@ -457,19 +439,19 @@ const ctaLinks = [
       </section>
 
       <UPageSection
-        headline="For contractors"
-        title="Turn your license into your best marketing asset."
-        description="Your credentials already set you apart from the unlicensed crowd. The Network puts them in front of homeowners who are actively searching for a pro."
+        headline="For homeowners"
+        title="Hire on your terms — not theirs."
+        description="No lead-gen middlemen, no shared bid forms, no spam after you fill in your email. The Network gives you the credentials and the contact info, and you decide who to call."
         orientation="horizontal"
-        :features="businessFeatures"
+        :features="experienceFeatures"
         :ui="landingSectionUi"
       >
         <div
           class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
         >
           <img
-            src="/images/for_contractors.png"
-            alt="Contractor managing their listing on The Network"
+            src="/images/homeowners.png"
+            alt="Homeowner calling a verified pro through The Network"
             class="absolute inset-0 size-full object-cover object-center"
             loading="lazy"
           >
@@ -516,14 +498,14 @@ const ctaLinks = [
 
       <UPageCTA
         variant="naked"
-        description="Submit your business in minutes. Get verified, get listed, and let homeowners come to you instead of the other way around."
+        description="Skip the call-around. Find a licensed, insured local pro in seconds — always free for homeowners."
         :links="ctaLinks"
         :ui="landingCtaUi"
       >
         <template #title>
-          Stop chasing leads.
+          Stop searching.
           <br>
-          Start answering the phone.
+          Start hiring.
         </template>
       </UPageCTA>
     </div>
