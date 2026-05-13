@@ -31,8 +31,10 @@ export default defineNuxtConfig({
     redirect: false
   },
   runtimeConfig: {
+    turnstileSecretKey: '',
     public: {
-      wpApiBase: 'https://floridatradespecialists.com/wp-json/wp/v2'
+      wpApiBase: 'https://floridatradespecialists.com/wp-json/wp/v2',
+      turnstileSiteKey: ''
     }
   }
 })

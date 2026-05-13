@@ -210,7 +210,7 @@ const landingSectionUi = {
 const landingCtaUi = {
   root: 'rounded-none ring-0 shadow-none overflow-visible',
   container:
-    '!px-0 !py-16 sm:!py-20 lg:!py-28 gap-8 sm:gap-16 flex flex-col',
+    '!px-0 !pt-0 !pb-16 sm:!pb-20 lg:!pb-28 gap-8 sm:gap-16 flex flex-col',
   title: 'text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl'
 }
 

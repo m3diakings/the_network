@@ -125,6 +125,65 @@ const form = reactive({
 const submitting = ref(false)
 const submitted = ref(false)
 const errorMessage = ref<string | null>(null)
+const honeypot = ref('')
+const turnstileToken = ref('')
+const turnstileEl = ref<HTMLDivElement | null>(null)
+const turnstileWidgetId = ref<string | null>(null)
+
+const runtimeConfig = useRuntimeConfig()
+const turnstileSiteKey = runtimeConfig.public.turnstileSiteKey
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        el: HTMLElement,
+        opts: {
+          sitekey: string
+          callback?: (token: string) => void
+          'expired-callback'?: () => void
+          'error-callback'?: () => void
+        }
+      ) => string
+      reset: (id: string) => void
+    }
+  }
+}
+
+if (turnstileSiteKey) {
+  useHead({
+    script: [
+      {
+        src: 'https://challenges.cloudflare.com/turnstile/v0/api.js',
+        async: true,
+        defer: true
+      }
+    ]
+  })
+
+  onMounted(() => {
+    let tries = 0
+    const poll = window.setInterval(() => {
+      tries += 1
+      if (window.turnstile && turnstileEl.value) {
+        turnstileWidgetId.value = window.turnstile.render(turnstileEl.value, {
+          sitekey: turnstileSiteKey,
+          callback: (token: string) => {
+            turnstileToken.value = token
+          },
+          'expired-callback': () => {
+            turnstileToken.value = ''
+          },
+          'error-callback': () => {
+            turnstileToken.value = ''
+          }
+        })
+        window.clearInterval(poll)
+      }
+      if (tries > 50) window.clearInterval(poll)
+    }, 100)
+  })
+}
 
 function onFileChange(event: Event, key: 'logo' | 'licenseDocument' | 'insuranceDocument') {
   const target = event.target as HTMLInputElement
@@ -164,6 +223,16 @@ async function uploadFile(label: string, bucket: string, prefix: string, file: F
 async function onSubmit() {
   if (!canSubmit.value || submitting.value) return
 
+  if (honeypot.value) {
+    submitted.value = true
+    return
+  }
+
+  if (turnstileSiteKey && !turnstileToken.value) {
+    errorMessage.value = 'Please complete the CAPTCHA before submitting.'
+    return
+  }
+
   errorMessage.value = null
   submitting.value = true
 
@@ -176,24 +245,37 @@ async function onSubmit() {
       uploadFile('Insurance', 'business-documents', `submissions/${submissionId}`, form.insuranceDocument!)
     ])
 
-    const { error } = await supabase.from('businesses').insert({
-      category_id: form.categoryId,
-      name: form.businessName,
-      phone: form.phone,
-      website_url: form.website,
-      bio: form.bio,
-      address: form.address,
-      logo_path: logoPath,
-      license_document_path: licensePath,
-      insurance_document_path: insurancePath,
-      submitter_email: form.email,
-      status: 'pending_review'
+    await $fetch('/api/businesses/submit', {
+      method: 'POST',
+      body: {
+        categoryId: form.categoryId,
+        businessName: form.businessName,
+        phone: form.phone,
+        website: form.website,
+        bio: form.bio,
+        address: form.address,
+        email: form.email,
+        logoPath,
+        licensePath,
+        insurancePath,
+        honeypot: honeypot.value,
+        turnstileToken: turnstileToken.value
+      }
     })
 
-    if (error) throw new Error(`Business insert failed: ${error.message}`)
     submitted.value = true
   } catch (e: unknown) {
-    errorMessage.value = e instanceof Error ? e.message : 'Submission failed. Please try again.'
+    const fetchError = e as { statusMessage?: string; data?: { statusMessage?: string }; message?: string }
+    errorMessage.value =
+      fetchError.statusMessage
+      ?? fetchError.data?.statusMessage
+      ?? fetchError.message
+      ?? 'Submission failed. Please try again.'
+
+    if (turnstileSiteKey && turnstileWidgetId.value && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetId.value)
+      turnstileToken.value = ''
+    }
   } finally {
     submitting.value = false
   }
@@ -344,6 +426,23 @@ async function onSubmit() {
                   @change="onFileChange($event, 'insuranceDocument')"
                 >
               </UFormField>
+            </div>
+
+            <div aria-hidden="true" class="pointer-events-none absolute left-[-9999px] top-[-9999px] opacity-0">
+              <label>
+                Leave this field empty
+                <input
+                  v-model="honeypot"
+                  type="text"
+                  name="company_homepage"
+                  tabindex="-1"
+                  autocomplete="off"
+                >
+              </label>
+            </div>
+
+            <div v-if="turnstileSiteKey" class="pt-2">
+              <div ref="turnstileEl" />
             </div>
 
             <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
