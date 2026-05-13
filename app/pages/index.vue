@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
 
+useSeoMeta({
+  title: 'Florida Trade Specialists — Find Verified Licensed Contractors',
+  description: 'Hire licensed plumbers, electricians, HVAC techs, and roofers across Florida. Verified credentials, tap-to-call contact, no lead forms — always free for homeowners.',
+  ogTitle: 'Find Licensed Florida Trade Pros — Free Directory',
+  ogDescription: 'Browse verified plumbers, electricians, HVAC techs, and roofers across Florida. License-backed listings with one-tap contact. Always free for homeowners.',
+  ogImage: '/images/whyus.png',
+  twitterTitle: 'Find Licensed Florida Trade Pros — Free Directory',
+  twitterDescription: 'Verified Florida contractors. License-backed listings. Tap to call directly.',
+  twitterImage: '/images/whyus.png'
+})
+
 const heroSignals = [
   { icon: 'i-lucide-shield-check', label: 'Licensed & insured' },
   { icon: 'i-lucide-zap', label: 'Avg response 6 min' },
@@ -109,7 +120,7 @@ const discoveryFeatures = [
   {
     title: 'Verified pros only',
     description:
-      'Every business on The Network submits proof of license and insurance before their listing goes live.',
+      'Every business on Florida Trade Specialists submits proof of license and insurance before their listing goes live.',
     icon: 'i-lucide-shield-check'
   },
   {
@@ -170,7 +181,7 @@ const faqItems: AccordionItem[] = [
     label: 'Does it cost anything to find a pro?',
     icon: 'i-lucide-circle-dollar-sign',
     content:
-      'No. Searching, browsing, and contacting any business on The Network is free for homeowners — no signup required.'
+      'No. Searching, browsing, and contacting any business on Florida Trade Specialists is free for homeowners — no signup required.'
   },
   {
     label: 'Will my contact info be sold or shared?',
@@ -216,7 +227,7 @@ const ctaLinks = [
 <template>
   <UPage class="bg-default">
     <div class="flex flex-col" :class="landingStackGap">
-      <section class="relative isolate overflow-hidden">
+      <section class="relative isolate -mb-8 overflow-hidden sm:-mb-12 lg:-mb-16">
         <div class="pointer-events-none absolute inset-0 -z-10">
           <div class="absolute -top-48 left-1/2 size-[760px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
           <div
@@ -369,9 +380,9 @@ const ctaLinks = [
 
       <UPageSection
         class="mt-12 lg:mt-16"
-        headline="Why The Network"
+        headline="Why Florida Trade Specialists"
         title="Find the right pro without the spam or guesswork."
-        description="Every business on The Network is licensed, insured, and reviewed before they show up in your search. No anonymous reviews, no shady directories — just verified local trades."
+        description="Every business on Florida Trade Specialists is licensed, insured, and reviewed before they show up in your search. No anonymous reviews, no shady directories — just verified local trades."
         orientation="horizontal"
         reverse
         :features="discoveryFeatures"
@@ -382,7 +393,7 @@ const ctaLinks = [
         >
           <img
             src="/images/whyus.png"
-            alt="Verified local pros on The Network"
+            alt="Verified local pros on Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
             loading="lazy"
           >
@@ -420,15 +431,15 @@ const ctaLinks = [
             >
               <div class="flex items-start gap-3">
                 <div
-                  class="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-semibold leading-none tabular-nums text-primary"
+                  class="grid size-11 shrink-0 place-items-center rounded-full bg-primary/15 text-base font-semibold leading-none tabular-nums text-primary"
                 >
                   {{ index + 1 }}
                 </div>
                 <div class="space-y-2">
-                  <p class="text-lg font-semibold text-highlighted">
+                  <p class="text-xl font-semibold text-highlighted">
                     {{ step.title }}
                   </p>
-                  <p class="text-sm leading-relaxed text-muted">
+                  <p class="text-base leading-relaxed text-muted">
                     {{ step.description }}
                   </p>
                 </div>
@@ -441,7 +452,7 @@ const ctaLinks = [
       <UPageSection
         headline="For homeowners"
         title="Hire on your terms — not theirs."
-        description="No lead-gen middlemen, no shared bid forms, no spam after you fill in your email. The Network gives you the credentials and the contact info, and you decide who to call."
+        description="No lead-gen middlemen, no shared bid forms, no spam after you fill in your email. Florida Trade Specialists gives you the credentials and the contact info, and you decide who to call."
         orientation="horizontal"
         :features="experienceFeatures"
         :ui="landingSectionUi"
@@ -451,7 +462,7 @@ const ctaLinks = [
         >
           <img
             src="/images/homeowners.png"
-            alt="Homeowner calling a verified pro through The Network"
+            alt="Homeowner calling a verified pro through Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
             loading="lazy"
           >

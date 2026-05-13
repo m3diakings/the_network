@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
 
+useSeoMeta({
+  title: 'List Your Trade Business — Free Florida Directory Listing',
+  description: 'Florida licensed contractors: get found by homeowners actively searching. Free standard listings, reviewed in about one business day. Submit your business today.',
+  ogTitle: 'Get Listed on Florida Trade Specialists — Free Standard Listings',
+  ogDescription: 'Join Florida\'s directory of verified, licensed trade pros. Reviewed in ~1 day. Tap-to-call leads come directly to you.',
+  ogImage: '/images/for_contractors.png',
+  twitterTitle: 'Get Listed on Florida Trade Specialists',
+  twitterDescription: 'Free standard listings for licensed Florida trade pros. Reviewed in about a day.',
+  twitterImage: '/images/for_contractors.png'
+})
+
 type Category = {
   id: string
   slug: string
@@ -39,7 +50,7 @@ const contractorSteps = [
   },
   {
     title: 'Start taking calls',
-    description: 'Once approved, your listing is live across The Network with tap-to-call and website links wired up.'
+    description: 'Once approved, your listing is live across Florida Trade Specialists with tap-to-call and website links wired up.'
   }
 ]
 
@@ -393,7 +404,7 @@ async function onSubmit() {
               Get listed in three steps
             </h2>
             <p class="mx-auto max-w-3xl text-base text-white/80">
-              From submission to live listing, most contractors are up on The Network within a day.
+              From submission to live listing, most contractors are up on Florida Trade Specialists within a day.
             </p>
           </div>
 
@@ -405,15 +416,15 @@ async function onSubmit() {
             >
               <div class="flex items-start gap-3">
                 <div
-                  class="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-semibold leading-none tabular-nums text-primary"
+                  class="grid size-11 shrink-0 place-items-center rounded-full bg-primary/15 text-base font-semibold leading-none tabular-nums text-primary"
                 >
                   {{ index + 1 }}
                 </div>
                 <div class="space-y-2">
-                  <p class="text-lg font-semibold text-highlighted">
+                  <p class="text-xl font-semibold text-highlighted">
                     {{ step.title }}
                   </p>
-                  <p class="text-sm leading-relaxed text-muted">
+                  <p class="text-base leading-relaxed text-muted">
                     {{ step.description }}
                   </p>
                 </div>
@@ -426,7 +437,7 @@ async function onSubmit() {
       <UPageSection
         headline="For contractors"
         title="Turn your license into your best marketing asset."
-        description="Your credentials already set you apart from the unlicensed crowd. The Network puts them in front of homeowners who are actively searching for a pro."
+        description="Your credentials already set you apart from the unlicensed crowd. Florida Trade Specialists puts them in front of homeowners who are actively searching for a pro."
         orientation="horizontal"
         :features="contractorFeatures"
         :ui="landingSectionUi"
@@ -436,7 +447,7 @@ async function onSubmit() {
         >
           <img
             src="/images/for_contractors.png"
-            alt="Contractor managing their listing on The Network"
+            alt="Contractor managing their listing on Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
             loading="lazy"
           >

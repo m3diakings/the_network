@@ -1,4 +1,15 @@
 <script setup lang="ts">
+useSeoMeta({
+  title: 'Florida Contractors Directory — Plumbing, Electrical, HVAC & Roofing',
+  description: 'Search Florida\'s directory of licensed plumbers, electricians, HVAC techs, and roofers. Filter by trade, call directly — no lead forms, no middlemen.',
+  ogTitle: 'Florida Trade Pros Directory — Verified Contractors',
+  ogDescription: 'Licensed plumbers, electricians, HVAC, and roofers across Florida. Verified credentials, tap-to-call contact.',
+  ogImage: '/images/whyus.png',
+  twitterTitle: 'Florida Trade Pros Directory — Verified Contractors',
+  twitterDescription: 'Licensed Florida contractors, ready to take your call. Always free for homeowners.',
+  twitterImage: '/images/whyus.png'
+})
+
 type BusinessRow = {
   id: string
   category_id: string | null
