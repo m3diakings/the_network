@@ -1,68 +1,176 @@
 <script setup lang="ts">
+type BusinessRow = {
+  id: string
+  category_id: string | null
+  name: string
+  phone: string
+  website_url: string
+  bio: string
+  address: string
+  logo_path: string | null
+  featured: boolean
+  featured_order: number | null
+  created_at: string
+}
+
 type Business = {
-  id: number
+  id: string
+  categoryId: string | null
   name: string
   phone: string
   website: string
   bio: string
   address: string
   logo: string
+  createdAt: string
+  featured: boolean
 }
 
-const businesses: Business[] = [
-  {
-    id: 1,
-    name: 'Atlantic Coast Plumbing Co.',
-    phone: '(954) 555-0121',
-    website: 'https://atlanticcoastplumbing.example.com',
-    bio: 'Licensed plumbing contractor focused on residential repairs, water heater installs, emergency leak response, and full home repiping projects. Their team also handles fixture upgrades and preventative maintenance for older properties across Broward County.',
-    address: '1250 E Sunrise Blvd, Fort Lauderdale, FL 33304',
-    logo: 'https://placehold.co/88x88/f97316/ffffff?text=ACP'
-  },
-  {
-    id: 2,
-    name: 'Sunrise Electrical Services',
-    phone: '(754) 555-0198',
-    website: 'https://sunriseelectrical.example.com',
-    bio: 'Full-service electricians handling panel upgrades, indoor and outdoor lighting, code-compliant rewiring, and EV charger installation. They provide same-week appointments for troubleshooting and electrical safety inspections for homes and small commercial units.',
-    address: '2201 W Broward Blvd, Fort Lauderdale, FL 33312',
-    logo: 'https://placehold.co/88x88/2563eb/ffffff?text=SES'
-  },
-  {
-    id: 3,
-    name: 'Broward HVAC & Cooling',
-    phone: '(954) 555-0174',
-    website: 'https://browardhvac.example.com',
-    bio: 'Commercial and residential HVAC company providing maintenance plans, AC installation, same-day diagnostics, and indoor air quality upgrades. Technicians specialize in high-efficiency systems, ductwork balancing, and seasonal tune-ups built for South Florida weather.',
-    address: '4100 N Federal Hwy, Fort Lauderdale, FL 33308',
-    logo: 'https://placehold.co/88x88/0f766e/ffffff?text=BHC'
-  },
-  {
-    id: 4,
-    name: 'Pro Finish Painters',
-    phone: '(954) 555-0140',
-    website: 'https://profinishpainters.example.com',
-    bio: 'Interior and exterior painting specialists known for fast turnaround, clean finishes, and premium coatings.',
-    address: '955 SE 17th St, Fort Lauderdale, FL 33316',
-    logo: 'https://placehold.co/88x88/7c3aed/ffffff?text=PFP'
-  },
-  {
-    id: 5,
-    name: 'South Florida Roofing Group',
-    phone: '(954) 555-0113',
-    website: 'https://sflroofing.example.com',
-    bio: 'Roof inspection, repair, and replacement team with expertise in shingle, tile, and flat roof systems. Services include storm damage assessments, leak tracing, preventative sealing, and complete reroof projects backed by labor and material warranties.',
-    address: '301 SW 1st Ave, Fort Lauderdale, FL 33301',
-    logo: 'https://placehold.co/88x88/dc2626/ffffff?text=SFR'
+type CategoryOption = {
+  id: string
+  label: string
+}
+
+const supabase = useSupabaseClient()
+
+const { data: businessRows } = await useAsyncData('listings', async () => {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('id, category_id, name, phone, website_url, bio, address, logo_path, featured, featured_order, created_at')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as BusinessRow[]
+})
+
+const { data: categoryRows } = await useAsyncData('listings-categories', async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, slug, name, sort_order')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as { id: string, slug: string, name: string, sort_order: number }[]
+})
+
+function logoUrl(path: string | null) {
+  if (!path) return 'https://placehold.co/88x88/64748b/ffffff?text=Logo'
+  const { data } = supabase.storage.from('business-logos').getPublicUrl(path)
+  return data.publicUrl
+}
+
+function toBusiness(row: BusinessRow): Business {
+  return {
+    id: row.id,
+    categoryId: row.category_id,
+    name: row.name,
+    phone: row.phone,
+    website: row.website_url,
+    bio: row.bio,
+    address: row.address,
+    logo: logoUrl(row.logo_path),
+    createdAt: row.created_at,
+    featured: row.featured
   }
-]
+}
+
+const allBusinesses = computed(() => (businessRows.value ?? []).map(toBusiness))
+
+const categoryOptions = computed<CategoryOption[]>(() => [
+  { id: 'all', label: 'All categories' },
+  ...(categoryRows.value ?? []).map(row => ({ id: row.id, label: row.name }))
+])
+
+const sortOptions = [
+  { id: 'newest', label: 'Newest first' },
+  { id: 'oldest', label: 'Oldest first' },
+  { id: 'name', label: 'Name (A–Z)' }
+] as const
+
+type SortId = (typeof sortOptions)[number]['id']
+
+const route = useRoute()
+const router = useRouter()
+
+function categoryIdFromSlug(slug: string | undefined) {
+  if (!slug) return 'all'
+  const match = (categoryRows.value ?? []).find(row => row.slug === slug)
+  return match?.id ?? 'all'
+}
+
+const initialCategorySlug = typeof route.query.category === 'string' ? route.query.category : undefined
+
+const searchQuery = ref('')
+const selectedCategoryId = ref<string>(categoryIdFromSlug(initialCategorySlug))
+const selectedSort = ref<SortId>('newest')
+
+watch(
+  () => route.query.category,
+  (slug) => {
+    selectedCategoryId.value = categoryIdFromSlug(typeof slug === 'string' ? slug : undefined)
+  }
+)
+
+watch(selectedCategoryId, (id) => {
+  const match = (categoryRows.value ?? []).find(row => row.id === id)
+  const nextSlug = match?.slug
+  const currentSlug = typeof route.query.category === 'string' ? route.query.category : undefined
+  if (nextSlug === currentSlug) return
+  const { category: _omit, ...rest } = route.query
+  router.replace({
+    query: nextSlug ? { ...rest, category: nextSlug } : rest
+  })
+})
+
+const businesses = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const category = selectedCategoryId.value
+  const sort = selectedSort.value
+
+  const matches = allBusinesses.value.filter(business => {
+    if (category !== 'all' && business.categoryId !== category) return false
+    if (!query) return true
+    return (
+      business.name.toLowerCase().includes(query)
+      || business.bio.toLowerCase().includes(query)
+      || business.address.toLowerCase().includes(query)
+    )
+  })
+
+  if (sort === 'name') {
+    matches.sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sort === 'oldest') {
+    matches.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  } else {
+    matches.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  }
+
+  return matches
+})
+
+const featuredBusinesses = computed(() => {
+  const featured = (businessRows.value ?? [])
+    .filter(row => row.featured)
+    .sort((a, b) => (a.featured_order ?? 0) - (b.featured_order ?? 0))
+    .map(toBusiness)
+  return featured.length ? featured : allBusinesses.value.slice(0, 3)
+})
+
+const hasActiveFilters = computed(() =>
+  searchQuery.value.trim().length > 0
+  || selectedCategoryId.value !== 'all'
+  || selectedSort.value !== 'newest'
+)
+
+function clearFilters() {
+  searchQuery.value = ''
+  selectedCategoryId.value = 'all'
+  selectedSort.value = 'newest'
+}
 
 function phoneHref(phone: string) {
   const digits = phone.replace(/\D/g, '')
   return `tel:${digits}`
 }
-
-const featuredBusinesses = businesses.slice(0, 3)
 </script>
 
 <template>
@@ -70,7 +178,7 @@ const featuredBusinesses = businesses.slice(0, 3)
     <UContainer class="py-10">
       <UPageHeader
         headline="Business Directory"
-        title="Trade Companies in Fort Lauderdale, FL"
+        title="Trade Companies in Florida"
         description="Browse trusted local businesses with quick access to contact info and websites."
       />
       <div class="mt-4">
@@ -80,8 +188,88 @@ const featuredBusinesses = businesses.slice(0, 3)
       </div>
 
       <UPageBody class="mt-6 pb-16">
+        <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-default/70 bg-elevated/40 p-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <UInput
+            v-model="searchQuery"
+            icon="i-lucide-search"
+            placeholder="Search by name, bio, or address"
+            class="flex-1 min-w-[14rem]"
+            size="md"
+          />
+          <USelectMenu
+            v-model="selectedCategoryId"
+            :items="categoryOptions"
+            value-key="id"
+            label-key="label"
+            icon="i-lucide-tag"
+            class="w-full sm:w-56"
+            size="md"
+          />
+          <USelectMenu
+            v-model="selectedSort"
+            :items="sortOptions"
+            value-key="id"
+            label-key="label"
+            icon="i-lucide-arrow-up-down"
+            class="w-full sm:w-48"
+            size="md"
+          />
+          <UButton
+            v-if="hasActiveFilters"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="md"
+            @click="clearFilters"
+          >
+            Clear
+          </UButton>
+        </div>
+
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <div class="space-y-4">
+            <p class="text-sm text-muted">
+              Showing <span class="font-semibold text-default">{{ businesses.length }}</span>
+              of {{ allBusinesses.length }} {{ allBusinesses.length === 1 ? 'business' : 'businesses' }}
+            </p>
+
+            <UCard
+              v-if="businesses.length === 0"
+              :ui="{ root: 'rounded-2xl bg-default ring-0 shadow-md shadow-black/5' }"
+            >
+              <div class="flex flex-col items-center gap-3 py-10 text-center">
+                <UIcon name="i-lucide-inbox" class="size-10 text-muted" />
+                <div>
+                  <p class="text-base font-semibold text-highlighted">
+                    {{ allBusinesses.length === 0 ? 'No published listings yet' : 'No matches for your filters' }}
+                  </p>
+                  <p class="mt-1 text-sm text-muted">
+                    {{
+                      allBusinesses.length === 0
+                        ? 'Submitted businesses appear here once they pass review.'
+                        : 'Try a different search term or category.'
+                    }}
+                  </p>
+                </div>
+                <UButton
+                  v-if="allBusinesses.length === 0"
+                  to="/submit-business"
+                  icon="i-lucide-plus"
+                >
+                  Submit Your Business
+                </UButton>
+                <UButton
+                  v-else
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-x"
+                  @click="clearFilters"
+                >
+                  Clear filters
+                </UButton>
+              </div>
+            </UCard>
+
             <UCard
               v-for="business in businesses"
               :key="business.id"

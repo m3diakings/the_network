@@ -1,13 +1,2 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
-
-/* Darker teal ramp for AA-friendly primary (Nuxt UI light uses shade 500, dark uses 400). */
-@theme static {
-  --color-teal-400: oklch(70.4% 0.14 182.503);
-  --color-teal-500: oklch(60% 0.118 184.704);
-  --color-teal-600: oklch(51.1% 0.096 186.391);
-  --color-teal-700: oklch(43.7% 0.078 188.216);
-  --color-teal-800: oklch(38.6% 0.063 188.416);
-  --color-teal-900: oklch(27.7% 0.046 192.524);
-  --color-teal-950: oklch(21% 0.036 192.524);
-}

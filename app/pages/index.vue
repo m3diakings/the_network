@@ -1,144 +1,206 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
 
-const heroLinks = [
-  {
-    label: 'Explore listings',
-    to: '/listings',
-    icon: 'i-lucide-search',
-    size: 'xl' as const
-  },
-  {
-    label: 'List your business',
-    to: '/submit-business',
-    color: 'neutral' as const,
-    variant: 'outline' as const,
-    icon: 'i-lucide-plus',
-    size: 'xl' as const
-  }
+const heroSignals = [
+  { icon: 'i-lucide-shield-check', label: 'Licensed & insured' },
+  { icon: 'i-lucide-zap', label: 'Avg response 6 min' },
+  { icon: 'i-lucide-phone-call', label: 'Tap to call' }
 ]
 
-const categories = [
-  {
-    title: 'Plumbing',
-    desc: 'Repairs, leak detection, and water heater services.',
-    icon: 'i-lucide-wrench'
-  },
-  {
-    title: 'Electrical',
-    desc: 'Panel upgrades, rewiring, and EV charger installs.',
-    icon: 'i-lucide-zap'
-  },
-  {
-    title: 'HVAC',
-    desc: 'Cooling, heating, and indoor air quality solutions.',
-    icon: 'i-lucide-fan'
-  },
-  {
-    title: 'Roofing',
-    desc: 'Inspections, storm repair, and full replacements.',
-    icon: 'i-lucide-house'
+type CategoryRow = {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  icon_key: string | null
+  sort_order: number
+}
+
+type HeroBusinessRow = {
+  id: string
+  name: string
+  logo_path: string | null
+}
+
+const supabase = useSupabaseClient()
+
+const { data: categoryRows } = await useAsyncData('home-categories', async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, slug, name, description, icon_key, sort_order')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as CategoryRow[]
+})
+
+const HERO_AVATAR_LIMIT = 4
+
+const { data: heroStats } = await useAsyncData('hero-stats', async () => {
+  const [logoQuery, countQuery] = await Promise.all([
+    supabase
+      .from('businesses')
+      .select('id, name, logo_path')
+      .eq('status', 'published')
+      .not('logo_path', 'is', null)
+      .order('featured', { ascending: false })
+      .order('featured_order', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false })
+      .limit(HERO_AVATAR_LIMIT),
+    supabase
+      .from('businesses')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'published')
+  ])
+  if (logoQuery.error) throw logoQuery.error
+  if (countQuery.error) throw countQuery.error
+  return {
+    featured: (logoQuery.data ?? []) as HeroBusinessRow[],
+    publishedCount: countQuery.count ?? 0
   }
-]
+})
+
+function logoPublicUrl(path: string) {
+  return supabase.storage.from('business-logos').getPublicUrl(path).data.publicUrl
+}
+
+function nameInitials(name: string) {
+  const parts = name.trim().split(/\s+/).slice(0, 2)
+  return parts.map(part => part.charAt(0).toUpperCase()).join('') || '?'
+}
+
+const heroAvatars = computed(() =>
+  (heroStats.value?.featured ?? []).map(row => ({
+    id: row.id,
+    name: row.name,
+    initials: nameInitials(row.name),
+    logoUrl: row.logo_path ? logoPublicUrl(row.logo_path) : null
+  }))
+)
+
+const heroRemainingCount = computed(() => {
+  const total = heroStats.value?.publishedCount ?? 0
+  return Math.max(0, total - heroAvatars.value.length)
+})
+
+const heroPublishedCount = computed(() => heroStats.value?.publishedCount ?? 0)
+
+const categoryImageOverrides: Record<string, string> = {
+  plumbing: '/images/categories/plumbing.png',
+  electrical: '/images/categories/electrical.png',
+  hvac: '/images/categories/hvac.png',
+  roofing: '/images/categories/roofing.png'
+}
+
+function categoryImage(slug: string) {
+  return categoryImageOverrides[slug] ?? `https://picsum.photos/seed/${slug}-trade/900/600`
+}
+
+const categories = computed(() =>
+  (categoryRows.value ?? []).map(row => ({
+    slug: row.slug,
+    title: row.name,
+    desc: row.description ?? '',
+    icon: row.icon_key ?? 'i-lucide-tag',
+    image: categoryImage(row.slug)
+  }))
+)
 
 const discoveryFeatures = [
   {
-    title: 'Verified-first profiles',
+    title: 'Verified pros only',
     description:
-      'Structured listings show what matters—coverage signals, specialties, and fast ways to reach you.',
+      'Every business on The Network submits proof of license and insurance before their listing goes live.',
     icon: 'i-lucide-shield-check'
   },
   {
-    title: 'One-tap contact',
-    description: 'Tap-to-call and website links reduce friction so homeowners convert while intent is high.',
+    title: 'Call or visit in one tap',
+    description: 'Phone numbers and websites sit right on every listing — no forms, no waiting for a callback.',
     icon: 'i-lucide-phone-call'
   },
   {
-    title: 'Built for mobile search',
+    title: 'Built for your phone',
     description:
-      'Thumb-friendly layouts and scannable cards mean customers find answers before they bounce.',
+      'Search, filter, and compare local pros from the couch, the driveway, or wherever the problem is.',
     icon: 'i-lucide-smartphone'
   }
 ]
 
 const businessFeatures = [
   {
-    title: 'Submission that respects paperwork',
+    title: 'Credibility built in',
     description:
-      'Collect license and insurance uploads alongside your logo so prospects see credibility upfront.',
+      'Upload your license, insurance, and logo once. Homeowners see proof of trust before they ever pick up the phone.',
     icon: 'i-lucide-file-badge'
   },
   {
-    title: 'Premium placement options',
-    description: 'Featured sidebar placement keeps high-intent leads focused on your profile.',
+    title: 'Featured placements',
+    description: 'Upgrade to a featured spot in the sidebar to stay front-and-center when homeowners are ready to hire.',
     icon: 'i-lucide-sparkles'
   },
   {
-    title: 'Always-on discovery',
-    description: 'Category browsing keeps your trade visible even when customers start broad.',
+    title: 'Found by category',
+    description: 'Show up everywhere homeowners look — plumbing, electrical, HVAC, roofing, and more.',
     icon: 'i-lucide-compass'
   }
 ]
 
 const steps = [
   {
-    title: 'Claim your trade category',
-    description: 'Pick plumbing, electrical, HVAC, roofing, and more so locals land on the right lane.'
+    title: 'Pick your trade',
+    description: 'Choose the category that matches what you do — plumbing, electrical, HVAC, roofing, and more.'
   },
   {
-    title: 'Upload proof & polish your story',
-    description: 'Add credentials and a crisp bio—customers decide faster when details are obvious.'
+    title: 'Upload license & insurance',
+    description: 'Drop in your credentials, a logo, and a short bio. We review every submission before it goes public.'
   },
   {
-    title: 'Go live with instant actions',
-    description: 'Enable phone and web CTAs that match how homeowners actually hire.'
+    title: 'Start taking calls',
+    description: 'Once approved, your listing is live across The Network with tap-to-call and website links wired up.'
   }
 ]
 
 const faqItems: AccordionItem[] = [
   {
-    label: 'How do listings stay trustworthy?',
+    label: 'How do you verify businesses?',
     icon: 'i-lucide-badge-check',
     content:
-      'Businesses submit documentation during onboarding so profiles carry the signals homeowners expect before they call.'
+      'Every business uploads a license and insurance document during signup. We review the paperwork before the listing is approved.'
   },
   {
-    label: 'Can customers reach me instantly?',
+    label: 'Can customers reach me directly?',
     icon: 'i-lucide-phone',
     content:
-      'Yes—tap-to-call and website buttons sit beside every listing card so there is no hunting for contact info.'
+      'Yes — your phone number and website sit on every listing with tap-to-call buttons. Leads come straight to you, no middleman.'
   },
   {
-    label: 'What does it cost to get featured?',
+    label: 'What does a listing cost?',
     icon: 'i-lucide-circle-dollar-sign',
     content:
-      'Start with the standard directory placement, then graduate to featured sidebar spots as you scale inbound leads.'
+      'A standard listing is free. Featured placements that pin you to the sidebar are a paid upgrade — pricing details are sent after you submit.'
   },
   {
-    label: 'Do you support seasonal trades?',
+    label: 'Which trades do you cover?',
     icon: 'i-lucide-cloud-sun',
     content:
-      'Categories cover common trades today and we continuously expand coverage based on demand from homeowners.'
+      'We currently list plumbing, electrical, HVAC, and roofing across Florida. New trades are added based on demand from homeowners and contractors.'
   }
 ]
 
 /** Outer stack gap is the only space between major sections */
 const landingStackGap = 'gap-24 sm:gap-28 lg:gap-36'
 
-const landingHeroUi = {
-  container:
-    '!pt-10 sm:!pt-12 lg:!pt-14 !pb-0 gap-8 sm:gap-y-10 lg:gap-x-12 lg:gap-y-10 flex flex-col lg:grid lg:grid-cols-2 lg:items-center'
-}
-
 const landingSectionUi = {
   container:
-    '!py-0 gap-8 sm:gap-16 flex flex-col lg:grid lg:grid-cols-2 lg:items-center'
+    '!py-0 gap-8 sm:gap-16 flex flex-col lg:grid lg:grid-cols-2 lg:items-center',
+  headline: 'text-base font-semibold text-primary sm:text-lg',
+  title: 'text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl'
 }
 
 const landingCtaUi = {
   root: 'rounded-none ring-0 shadow-none overflow-visible',
   container:
-    '!px-0 !py-16 sm:!py-20 lg:!py-28 gap-8 sm:gap-16 flex flex-col'
+    '!px-0 !py-16 sm:!py-20 lg:!py-28 gap-8 sm:gap-16 flex flex-col',
+  title: 'text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl'
 }
 
 const ctaLinks = [
@@ -161,104 +223,116 @@ const ctaLinks = [
 <template>
   <UPage class="bg-default">
     <div class="flex flex-col" :class="landingStackGap">
-      <UPageHero
-        orientation="horizontal"
-        headline="Local trades. Serious discovery."
-        title="Find trusted contractors without the runaround."
-        description="The Network is a conversion-ready directory for homeowners who need speed—and for contractors who want calls, not clicks."
-        :links="heroLinks"
-        :ui="landingHeroUi"
-      >
-        <template #default>
-          <div class="relative mx-auto max-w-sm lg:max-w-none">
-            <div class="absolute inset-x-6 top-6 -z-10 h-64 rounded-[32px] bg-linear-to-br from-primary/25 via-primary/10 to-transparent blur-2xl" />
-            <div class="rounded-[32px] border border-default/70 bg-default/95 p-4 shadow-2xl shadow-black/10 backdrop-blur">
-              <div class="flex items-center justify-between rounded-2xl bg-elevated/60 px-4 py-3">
-              <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                  <UIcon name="i-lucide-bolt" class="size-5" />
-                </div>
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Featured contractor
-                  </p>
-                  <p class="text-sm font-semibold text-highlighted">
-                    Summit Electric Co.
-                  </p>
-                </div>
-              </div>
-              <UBadge color="primary" variant="subtle" size="sm">
-                Verified
-              </UBadge>
+      <section class="relative isolate overflow-hidden">
+        <div class="pointer-events-none absolute inset-0 -z-10">
+          <div class="absolute -top-48 left-1/2 size-[760px] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+          <div
+            class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,color-mix(in_oklab,var(--ui-text-muted)_25%,transparent)_1px,transparent_0)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_72%)]"
+          />
+        </div>
+
+        <UContainer class="py-20 sm:py-28 lg:py-36">
+          <div class="mx-auto flex max-w-3xl flex-col items-center text-center">
+            <div class="inline-flex items-center gap-2 rounded-full border border-default/70 bg-default/80 px-3 py-1 text-xs font-semibold backdrop-blur">
+              <span class="relative inline-flex size-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                <span class="relative inline-flex size-2 rounded-full bg-primary" />
+              </span>
+              <span class="text-muted">
+                Verified pros in Florida
+              </span>
             </div>
 
-            <div class="mt-4 space-y-3 rounded-2xl border border-default/70 bg-default p-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs text-muted">Today’s bookings</p>
-                  <p class="text-2xl font-semibold text-highlighted">
-                    18
-                  </p>
-                </div>
-                <div class="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">
-                  +32% week
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <UCard :ui="{ root: 'rounded-xl border border-default/70 bg-elevated/40 divide-y-0' }">
-                  <div class="space-y-1">
-                    <p class="text-xs text-muted">
-                      Call-through rate
-                    </p>
-                    <p class="text-lg font-semibold text-highlighted">
-                      41%
-                    </p>
-                  </div>
-                </UCard>
-                <UCard :ui="{ root: 'rounded-xl border border-default/70 bg-elevated/40 divide-y-0' }">
-                  <div class="space-y-1">
-                    <p class="text-xs text-muted">
-                      Avg. response
-                    </p>
-                    <p class="text-lg font-semibold text-highlighted">
-                      6 min
-                    </p>
-                  </div>
-                </UCard>
-              </div>
-              <div class="rounded-xl bg-primary/10 px-3 py-2 text-sm text-highlighted">
-                Homeowners convert faster when phone & web CTAs sit side-by-side.
-              </div>
+            <h1 class="mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-highlighted sm:text-6xl lg:text-7xl">
+              Hire local pros.
+              <span class="block text-primary">Skip the guesswork.</span>
+            </h1>
+
+            <p class="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted sm:text-xl">
+              Browse vetted plumbers, electricians, HVAC techs, and roofers — license-backed profiles with one tap to call.
+            </p>
+
+            <div class="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <UButton
+                to="/listings"
+                size="xl"
+                color="secondary"
+                icon="i-lucide-search"
+                trailing-icon="i-lucide-arrow-right"
+                block
+                class="sm:w-auto"
+              >
+                Find a pro
+              </UButton>
+              <UButton
+                to="/submit-business"
+                size="xl"
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-plus"
+                block
+                class="sm:w-auto"
+              >
+                List your business
+              </UButton>
             </div>
 
-            <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-semibold text-muted">
-              <div class="rounded-xl border border-dashed border-default/60 px-2 py-3">
-                Licensed pros
+            <div
+              v-if="heroPublishedCount > 0"
+              class="mt-12 flex flex-col items-center gap-5 sm:flex-row sm:gap-6"
+            >
+              <div class="flex -space-x-2">
+                <span
+                  v-for="avatar in heroAvatars"
+                  :key="avatar.id"
+                  class="grid size-9 place-items-center overflow-hidden rounded-full border-2 border-default bg-elevated text-[11px] font-semibold text-default shadow-sm"
+                  :title="avatar.name"
+                >
+                  <img
+                    v-if="avatar.logoUrl"
+                    :src="avatar.logoUrl"
+                    :alt="avatar.name"
+                    class="size-full object-cover"
+                    loading="lazy"
+                  >
+                  <template v-else>
+                    {{ avatar.initials }}
+                  </template>
+                </span>
+                <span
+                  v-if="heroRemainingCount > 0"
+                  class="grid size-9 place-items-center rounded-full border-2 border-default bg-primary/15 text-[11px] font-semibold text-primary shadow-sm"
+                >
+                  +{{ heroRemainingCount }}
+                </span>
               </div>
-              <div class="rounded-xl border border-dashed border-default/60 px-2 py-3">
-                Photo-ready cards
-              </div>
-              <div class="rounded-xl border border-dashed border-default/60 px-2 py-3">
-                Mobile-first UX
+              <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted">
+                <div
+                  v-for="signal in heroSignals"
+                  :key="signal.label"
+                  class="inline-flex items-center gap-1.5"
+                >
+                  <UIcon :name="signal.icon" class="size-4 text-primary" />
+                  <span class="font-medium text-default">{{ signal.label }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        </template>
-      </UPageHero>
+        </UContainer>
+      </section>
 
       <UContainer>
         <section>
           <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p class="text-sm font-semibold text-primary">
-                Categories in rotation
+              <p class="text-base font-semibold text-primary sm:text-lg">
+                Trades we cover
               </p>
-              <h2 class="text-3xl font-semibold tracking-tight text-highlighted">
+              <h2 class="text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl">
                 Browse by trade specialty
               </h2>
               <p class="mt-2 max-w-2xl text-muted">
-                Carousel-friendly cards echo Pocket’s rotating proof strips—built with your neutral surfaces and primary accents.
+                Tap any trade to see licensed pros covering your area. New categories added as demand grows.
               </p>
             </div>
             <UButton to="/listings" color="neutral" variant="outline" icon="i-lucide-arrow-up-right">
@@ -278,173 +352,81 @@ const ctaLinks = [
                 '!ps-0 min-w-0 shrink-0 overflow-hidden basis-full sm:basis-[calc((100%-1rem)/2)] lg:basis-[calc((100%-2rem)/3)]'
             }"
           >
-            <UCard class="h-full" :ui="{ root: 'rounded-2xl border border-default/70 bg-default divide-y-0' }">
-              <div class="space-y-4">
-                <UIcon :name="item.icon" class="size-7 text-primary" />
-                <div class="space-y-2">
-                  <p class="text-xl font-semibold text-highlighted">
-                    {{ item.title }}
-                  </p>
-                  <p class="text-sm text-muted">
-                    {{ item.desc }}
-                  </p>
+            <NuxtLink
+              :to="{ path: '/listings', query: { category: item.slug } }"
+              class="group relative block h-80 overflow-hidden rounded-2xl border border-default/70 shadow-lg shadow-black/10 sm:h-96"
+            >
+              <img
+                :src="item.image"
+                :alt="item.title"
+                class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+              >
+              <div class="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
+              <div class="relative flex h-full flex-col justify-end p-5 text-white">
+                <div class="flex size-10 items-center justify-center rounded-full bg-white/15 backdrop-blur">
+                  <UIcon :name="item.icon" class="size-5" />
                 </div>
-                <UButton to="/listings" variant="soft" color="primary" size="sm">
+                <p class="mt-4 text-2xl font-semibold tracking-tight">
+                  {{ item.title }}
+                </p>
+                <p class="mt-2 text-sm leading-relaxed text-white/80 line-clamp-2">
+                  {{ item.desc }}
+                </p>
+                <span
+                  class="mt-4 inline-flex w-fit items-center gap-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-stone-900 transition group-hover:bg-white/90"
+                >
                   Explore {{ item.title }}
-                </UButton>
+                  <UIcon name="i-lucide-arrow-right" class="size-4" />
+                </span>
               </div>
-            </UCard>
+            </NuxtLink>
           </UCarousel>
         </section>
       </UContainer>
 
       <UPageSection
+        class="mt-12 lg:mt-16"
         headline="Why The Network"
-        title="Marketing-grade storytelling meets operational rigor."
-        description="Borrowing the rhythm of premium app launches—clear hero, proof, workflow, and FAQs—while staying anchored in how homeowners actually hire tradespeople."
+        title="Find the right pro without the spam or guesswork."
+        description="Every business on The Network is licensed, insured, and reviewed before they show up in your search. No anonymous reviews, no shady directories — just verified local trades."
         orientation="horizontal"
         reverse
         :features="discoveryFeatures"
         :ui="landingSectionUi"
       >
-        <UCard :ui="{ root: 'rounded-3xl border border-default/70 bg-linear-to-br from-default via-default to-primary/5 shadow-xl divide-y-0' }">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div class="space-y-3 rounded-2xl bg-elevated/50 p-4">
-              <div class="flex items-center gap-3">
-                <UIcon name="i-lucide-scan-search" class="size-6 text-primary" />
-                <div>
-                  <p class="text-sm font-semibold text-highlighted">
-                    Structured discovery
-                  </p>
-                  <p class="text-xs text-muted">
-                    Filters map to how people search locally.
-                  </p>
-                </div>
-              </div>
-              <div class="space-y-2 rounded-xl border border-default/60 bg-default p-3">
-                <div class="flex items-center justify-between text-xs text-muted">
-                  <span>Nearby electricians</span>
-                  <span class="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                    Live
-                  </span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="size-12 rounded-lg bg-primary/10" />
-                  <div class="flex-1 space-y-2">
-                    <div class="h-2 w-3/4 rounded-full bg-default/80" />
-                    <div class="h-2 w-1/2 rounded-full bg-default/60" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-col justify-between gap-4 rounded-2xl border border-default/70 bg-default p-4">
-              <div class="flex items-start gap-3">
-                <UIcon name="i-lucide-mouse-pointer-click" class="size-6 text-primary" />
-                <div>
-                  <p class="text-sm font-semibold text-highlighted">
-                    Conversion-ready cards
-                  </p>
-                  <p class="text-xs text-muted">
-                    Calls and websites stay visible without extra taps.
-                  </p>
-                </div>
-              </div>
-              <div class="rounded-xl bg-primary/10 p-3 text-sm text-highlighted">
-                Pocket-inspired pacing: hero proof → workflows → social proof → decisive CTA.
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <UBadge color="neutral" variant="outline">
-                  Directory SEO
-                </UBadge>
-                <UBadge color="neutral" variant="outline">
-                  Featured placements
-                </UBadge>
-                <UBadge color="neutral" variant="outline">
-                  Launch-ready copy
-                </UBadge>
-              </div>
-            </div>
-          </div>
-        </UCard>
+        <div
+          class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
+        >
+          <img
+            src="/images/why_us.png"
+            alt="Verified local pros on The Network"
+            class="absolute inset-0 size-full object-cover object-center"
+            loading="lazy"
+          >
+        </div>
       </UPageSection>
 
-      <UPageSection
-        headline="For contractors"
-        title="Turn paperwork into a premium storefront."
-        description="Own your lane with documentation-backed profiles, polished visuals, and placements designed for inbound calls."
-        orientation="horizontal"
-        :features="businessFeatures"
-        :ui="landingSectionUi"
-      >
-        <UCard :ui="{ root: 'rounded-3xl border border-default/70 bg-default divide-y-0 shadow-xl' }">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between rounded-2xl bg-elevated/60 px-4 py-3">
-              <div>
-                <p class="text-xs uppercase tracking-wide text-muted">
-                  Dashboard pulse
-                </p>
-                <p class="text-lg font-semibold text-highlighted">
-                  Weekly inbound summary
-                </p>
-              </div>
-              <UBadge color="primary" variant="subtle">
-                +18 leads
-              </UBadge>
-            </div>
+      <section class="relative isolate overflow-hidden py-20 sm:py-28 lg:py-32">
+        <div class="absolute inset-0 -z-10">
+          <img
+            src="/images/how_it_works.png"
+            alt=""
+            class="size-full object-cover object-center"
+          >
+          <div class="absolute inset-0 bg-stone-950/75" />
+        </div>
 
-            <div class="grid gap-3 md:grid-cols-2">
-              <div class="rounded-2xl border border-default/70 p-4">
-                <p class="text-xs font-semibold text-muted">
-                  Documentation
-                </p>
-                <div class="mt-3 space-y-2">
-                  <div class="flex items-center justify-between rounded-lg bg-elevated/50 px-3 py-2 text-sm">
-                    <span class="text-muted">License.pdf</span>
-                    <UIcon name="i-lucide-check-circle-2" class="size-4 text-success" />
-                  </div>
-                  <div class="flex items-center justify-between rounded-lg bg-elevated/50 px-3 py-2 text-sm">
-                    <span class="text-muted">Insurance.pdf</span>
-                    <UIcon name="i-lucide-check-circle-2" class="size-4 text-success" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="rounded-2xl border border-default/70 p-4">
-                <p class="text-xs font-semibold text-muted">
-                  Placement
-                </p>
-                <div class="mt-3 space-y-3">
-                  <div class="flex items-center gap-2 text-sm text-highlighted">
-                    <UIcon name="i-lucide-star" class="size-4 text-primary" />
-                    Featured sidebar rotation
-                  </div>
-                  <div class="flex items-center gap-2 text-sm text-highlighted">
-                    <UIcon name="i-lucide-share-2" class="size-4 text-primary" />
-                    Share-ready profile links
-                  </div>
-                  <div class="flex items-center gap-2 text-sm text-highlighted">
-                    <UIcon name="i-lucide-life-buoy" class="size-4 text-primary" />
-                    Concierge onboarding tips
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </UCard>
-      </UPageSection>
-
-      <UContainer>
-        <section class="rounded-3xl border border-default/70 bg-elevated/30 px-6 py-10 sm:px-10">
+        <UContainer>
           <div class="flex flex-col gap-3 text-center">
-            <p class="text-sm font-semibold text-primary">
-              Launch playbook
+            <p class="text-base font-semibold text-primary sm:text-lg">
+              How it works
             </p>
-            <h2 class="text-3xl font-semibold tracking-tight text-highlighted">
-              Ship a credible listing in three moves
+            <h2 class="text-3xl font-semibold tracking-tight text-white lg:text-5xl">
+              Get listed in three steps
             </h2>
-            <p class="mx-auto max-w-3xl text-base text-muted">
-              Borrowing the cadence of polished marketing sites: headline clarity, proof blocks, and repeated CTAs that actually match your funnel.
+            <p class="mx-auto max-w-3xl text-base text-white/80">
+              From submission to live listing, most contractors are up on The Network within a day. Here's the path.
             </p>
           </div>
 
@@ -471,39 +453,79 @@ const ctaLinks = [
               </div>
             </UCard>
           </div>
-        </section>
-      </UContainer>
+        </UContainer>
+      </section>
 
-      <UContainer>
+      <UPageSection
+        headline="For contractors"
+        title="Turn your license into your best marketing asset."
+        description="Your credentials already set you apart from the unlicensed crowd. The Network puts them in front of homeowners who are actively searching for a pro."
+        orientation="horizontal"
+        :features="businessFeatures"
+        :ui="landingSectionUi"
+      >
+        <div
+          class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
+        >
+          <img
+            src="/images/for_contractors.png"
+            alt="Contractor managing their listing on The Network"
+            class="absolute inset-0 size-full object-cover object-center"
+            loading="lazy"
+          >
+        </div>
+      </UPageSection>
+
+      <UContainer class="mt-12 lg:mt-16">
         <section>
           <div class="mb-6 text-center">
-            <p class="text-sm font-semibold text-primary">
+            <p class="text-base font-semibold text-primary sm:text-lg">
               FAQ
             </p>
-            <h2 class="text-3xl font-semibold tracking-tight text-highlighted">
-              Answers before the sales call
+            <h2 class="text-3xl font-semibold tracking-tight text-highlighted lg:text-5xl">
+              Frequently asked questions
             </h2>
             <p class="mt-2 text-muted">
-              Strip away objections with crisp accordion responses—same hierarchy as modern Tailwind Plus marketing pages.
+              The most common questions we hear from homeowners and contractors before they sign up.
             </p>
           </div>
 
-          <UAccordion
-            type="multiple"
-            :unmount-on-hide="false"
-            :items="faqItems"
-            :ui="{ trigger: 'text-base', body: 'text-base text-muted leading-relaxed' }"
-          />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UCard
+              v-for="item in faqItems"
+              :key="item.label"
+              :ui="{ root: 'h-full rounded-2xl border border-default/70 bg-default divide-y-0' }"
+            >
+              <div class="flex items-start gap-3">
+                <div class="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                  <UIcon :name="item.icon" class="size-5" />
+                </div>
+                <div class="space-y-2">
+                  <p class="text-lg font-semibold text-highlighted">
+                    {{ item.label }}
+                  </p>
+                  <p class="text-base leading-relaxed text-muted">
+                    {{ item.content }}
+                  </p>
+                </div>
+              </div>
+            </UCard>
+          </div>
         </section>
       </UContainer>
 
       <UPageCTA
         variant="naked"
-        title="Ready to become the brand homeowners recognize first?"
-        description="Submit your documentation-backed profile, unlock featured placements, and pair polished storytelling with operational rigor."
+        description="Submit your business in minutes. Get verified, get listed, and let homeowners come to you instead of the other way around."
         :links="ctaLinks"
         :ui="landingCtaUi"
-      />
+      >
+        <template #title>
+          Stop chasing leads.
+          <br>
+          Start answering the phone.
+        </template>
+      </UPageCTA>
     </div>
   </UPage>
 </template>
