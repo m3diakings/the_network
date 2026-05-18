@@ -2,6 +2,8 @@
 const mobileMenuOpen = ref(false)
 
 const route = useRoute()
+const isAdminRoute = computed(() => route.path.startsWith('/admin'))
+
 watch(() => route.fullPath, () => {
   mobileMenuOpen.value = false
 })
@@ -23,7 +25,7 @@ const mobileMenuItems = [
   <UApp>
     <NuxtRouteAnnouncer />
 
-    <header class="border-b border-default bg-default/95 backdrop-blur">
+    <header v-if="!isAdminRoute" class="border-b border-default bg-default/95 backdrop-blur">
       <UContainer class="flex items-center justify-between gap-4 py-5">
         <NuxtLink
           to="/"
@@ -53,7 +55,7 @@ const mobileMenuItems = [
       </UContainer>
     </header>
 
-    <Teleport to="body">
+    <Teleport v-if="!isAdminRoute" to="body">
       <Transition
         enter-active-class="transition-opacity duration-200"
         leave-active-class="transition-opacity duration-150"
@@ -109,10 +111,12 @@ const mobileMenuItems = [
     </Teleport>
 
     <main>
-      <NuxtPage />
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
     </main>
 
-    <footer class="mt-10 bg-elevated">
+    <footer v-if="!isAdminRoute" class="mt-10 bg-elevated">
       <UContainer class="pt-16 pb-10 sm:pt-20 sm:pb-12">
         <div class="grid gap-8 md:grid-cols-3">
           <div>
