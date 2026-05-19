@@ -22,6 +22,13 @@ type Business = {
   logo_path: string | null
   license_document_path: string | null
   insurance_document_path: string | null
+  license_number: string | null
+  license_state: string | null
+  license_expires_at: string | null
+  insurance_carrier: string | null
+  insurance_expires_at: string | null
+  emergency_available: boolean
+  years_in_business: number | null
   status: BusinessStatus
   verified: boolean
   featured: boolean
@@ -85,6 +92,13 @@ const form = reactive({
   website_url: '',
   bio: '',
   address: '',
+  license_number: '',
+  license_state: 'FL',
+  license_expires_at: '',
+  insurance_carrier: '',
+  insurance_expires_at: '',
+  emergency_available: false,
+  years_in_business: null as number | null,
   status: 'pending_review' as BusinessStatus,
   verified: false,
   featured: false,
@@ -109,6 +123,13 @@ function hydrateForm(b: Business) {
   form.website_url = b.website_url
   form.bio = b.bio
   form.address = b.address
+  form.license_number = b.license_number ?? ''
+  form.license_state = b.license_state ?? 'FL'
+  form.license_expires_at = b.license_expires_at ?? ''
+  form.insurance_carrier = b.insurance_carrier ?? ''
+  form.insurance_expires_at = b.insurance_expires_at ?? ''
+  form.emergency_available = Boolean(b.emergency_available)
+  form.years_in_business = b.years_in_business
   form.status = b.status
   form.verified = b.verified
   form.featured = b.featured
@@ -197,6 +218,10 @@ async function onSave() {
       nextLogoPath = await uploadNewLogo()
     }
 
+    const years = typeof form.years_in_business === 'number' && Number.isFinite(form.years_in_business)
+      ? Math.floor(form.years_in_business)
+      : null
+
     const update: Partial<Business> = {
       name: form.name.trim(),
       category_id: form.category_id,
@@ -204,6 +229,13 @@ async function onSave() {
       website_url: form.website_url.trim(),
       bio: form.bio.trim(),
       address: form.address.trim(),
+      license_number: form.license_number.trim() || null,
+      license_state: form.license_state.trim().toUpperCase().slice(0, 2) || 'FL',
+      license_expires_at: form.license_expires_at || null,
+      insurance_carrier: form.insurance_carrier.trim() || null,
+      insurance_expires_at: form.insurance_expires_at || null,
+      emergency_available: form.emergency_available,
+      years_in_business: years,
       status: form.status,
       verified: form.verified,
       featured: form.featured,
@@ -388,6 +420,67 @@ const statusColors: Record<BusinessStatus, 'neutral' | 'warning' | 'success' | '
               <p v-if="newLogoFile" class="text-xs text-muted">
                 Replacing on save: {{ newLogoFile.name }}
               </p>
+            </div>
+          </div>
+        </UCard>
+
+        <UCard
+          :ui="{
+            root: 'rounded-2xl bg-default ring-0 shadow-md shadow-black/5'
+          }"
+        >
+          <template #header>
+            <h2 class="text-base font-semibold text-highlighted">
+              License &amp; insurance
+            </h2>
+          </template>
+
+          <div class="space-y-4">
+            <UFormField label="License number" hint="Shown publicly on the listing.">
+              <UInput v-model="form.license_number" size="md" class="w-full" placeholder="CFC1428721" />
+            </UFormField>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+              <UFormField label="License state">
+                <UInput v-model="form.license_state" size="md" maxlength="2" class="w-full" placeholder="FL" />
+              </UFormField>
+
+              <UFormField label="License expiration">
+                <UInput v-model="form.license_expires_at" type="date" size="md" class="w-full" />
+              </UFormField>
+
+              <UFormField label="Years in business">
+                <UInput
+                  v-model.number="form.years_in_business"
+                  type="number"
+                  min="0"
+                  max="200"
+                  size="md"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Insurance carrier">
+                <UInput v-model="form.insurance_carrier" size="md" class="w-full" placeholder="State Farm" />
+              </UFormField>
+
+              <UFormField label="Insurance expiration">
+                <UInput v-model="form.insurance_expires_at" type="date" size="md" class="w-full" />
+              </UFormField>
+            </div>
+
+            <div class="flex items-center justify-between rounded-lg bg-elevated/40 p-3">
+              <div>
+                <p class="text-sm font-medium text-default">
+                  24/7 emergency available
+                </p>
+                <p class="text-xs text-muted">
+                  Indicates after-hours availability on the listing.
+                </p>
+              </div>
+              <USwitch v-model="form.emergency_available" />
             </div>
           </div>
         </UCard>

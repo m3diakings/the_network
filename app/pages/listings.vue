@@ -19,6 +19,7 @@ type BusinessRow = {
   bio: string
   address: string
   logo_path: string | null
+  license_number: string | null
   featured: boolean
   featured_order: number | null
   created_at: string
@@ -33,6 +34,7 @@ type Business = {
   bio: string
   address: string
   logo: string
+  licenseNumber: string | null
   createdAt: string
   featured: boolean
 }
@@ -47,7 +49,7 @@ const supabase = useSupabaseClient()
 const { data: businessRows } = await useAsyncData('listings', async () => {
   const { data, error } = await supabase
     .from('businesses')
-    .select('id, category_id, name, phone, website_url, bio, address, logo_path, featured, featured_order, created_at')
+    .select('id, category_id, name, phone, website_url, bio, address, logo_path, license_number, featured, featured_order, created_at')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -79,6 +81,7 @@ function toBusiness(row: BusinessRow): Business {
     bio: row.bio,
     address: row.address,
     logo: logoUrl(row.logo_path),
+    licenseNumber: row.license_number,
     createdAt: row.created_at,
     featured: row.featured
   }
@@ -322,6 +325,15 @@ const listingsCtaLinks = [
                       </h2>
                       <UBadge color="success" variant="subtle" size="sm">
                         Verified
+                      </UBadge>
+                      <UBadge
+                        v-if="business.licenseNumber"
+                        color="neutral"
+                        variant="outline"
+                        size="sm"
+                        icon="i-lucide-badge-check"
+                      >
+                        License #{{ business.licenseNumber }}
                       </UBadge>
                     </div>
 

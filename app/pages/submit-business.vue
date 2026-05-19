@@ -117,6 +117,13 @@ const form = reactive({
   address: '',
   bio: '',
   email: '',
+  licenseNumber: '',
+  licenseState: 'FL',
+  licenseExpiresAt: '',
+  insuranceCarrier: '',
+  insuranceExpiresAt: '',
+  emergencyAvailable: false,
+  yearsInBusiness: null as number | null,
   logo: null as File | null,
   licenseDocument: null as File | null,
   insuranceDocument: null as File | null
@@ -199,6 +206,7 @@ const canSubmit = computed(() =>
       && form.address
       && form.bio
       && form.email
+      && form.licenseNumber.trim()
       && form.logo
       && form.licenseDocument
       && form.insuranceDocument
@@ -255,6 +263,15 @@ async function onSubmit() {
         bio: form.bio,
         address: form.address,
         email: form.email,
+        licenseNumber: form.licenseNumber.trim(),
+        licenseState: form.licenseState.trim() || 'FL',
+        licenseExpiresAt: form.licenseExpiresAt || null,
+        insuranceCarrier: form.insuranceCarrier.trim() || null,
+        insuranceExpiresAt: form.insuranceExpiresAt || null,
+        emergencyAvailable: form.emergencyAvailable,
+        yearsInBusiness: typeof form.yearsInBusiness === 'number' && Number.isFinite(form.yearsInBusiness)
+          ? form.yearsInBusiness
+          : null,
         logoPath,
         licensePath,
         insurancePath,
@@ -398,6 +415,92 @@ async function onSubmit() {
                 placeholder="Describe your services, coverage area, years in business, and specialties."
               />
             </UFormField>
+
+            <div class="space-y-4 rounded-xl border border-default/70 bg-elevated/30 p-4 sm:p-5">
+              <div>
+                <p class="text-sm font-semibold text-highlighted">
+                  License & insurance details
+                </p>
+                <p class="mt-1 text-xs text-muted">
+                  License number is shown publicly. Expiration dates and insurance carrier are kept internal and help us verify faster.
+                </p>
+              </div>
+
+              <UFormField class="w-full" label="License Number" required>
+                <UInput
+                  v-model="form.licenseNumber"
+                  class="w-full"
+                  size="xl"
+                  placeholder="CFC1428721"
+                  autocomplete="off"
+                />
+              </UFormField>
+
+              <div class="grid gap-4 md:grid-cols-3">
+                <UFormField class="w-full" label="License State">
+                  <UInput
+                    v-model="form.licenseState"
+                    class="w-full"
+                    size="xl"
+                    maxlength="2"
+                    placeholder="FL"
+                  />
+                </UFormField>
+
+                <UFormField class="w-full" label="License Expiration">
+                  <UInput
+                    v-model="form.licenseExpiresAt"
+                    type="date"
+                    class="w-full"
+                    size="xl"
+                  />
+                </UFormField>
+
+                <UFormField class="w-full" label="Years in Business">
+                  <UInput
+                    v-model.number="form.yearsInBusiness"
+                    type="number"
+                    min="0"
+                    max="200"
+                    class="w-full"
+                    size="xl"
+                    placeholder="12"
+                  />
+                </UFormField>
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <UFormField class="w-full" label="Insurance Carrier">
+                  <UInput
+                    v-model="form.insuranceCarrier"
+                    class="w-full"
+                    size="xl"
+                    placeholder="State Farm"
+                  />
+                </UFormField>
+
+                <UFormField class="w-full" label="Insurance Expiration">
+                  <UInput
+                    v-model="form.insuranceExpiresAt"
+                    type="date"
+                    class="w-full"
+                    size="xl"
+                  />
+                </UFormField>
+              </div>
+
+              <div class="flex items-center justify-between gap-3 rounded-lg bg-default/60 p-3">
+                <div>
+                  <p class="text-sm font-medium text-default">
+                    24/7 emergency availability
+                  </p>
+                  <p class="text-xs text-muted">
+                    Toggle on if your business answers emergency calls outside normal hours.
+                  </p>
+                </div>
+                <USwitch v-model="form.emergencyAvailable" />
+              </div>
+            </div>
 
             <div class="grid gap-4 md:grid-cols-2">
               <UFormField class="w-full" label="Logo Upload" required>
