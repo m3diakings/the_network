@@ -161,11 +161,11 @@ const mobileMenuItems = [
               (305) 957-0088
             </a>
             <a
-              href="mailto:contact@Floridatradespecialist.com"
+              href="mailto:contact@floridatradespecialists.com"
               class="inline-flex items-center gap-2 break-all text-default hover:text-primary"
             >
               <UIcon name="i-lucide-mail" class="size-4 shrink-0 text-primary" />
-              contact@Floridatradespecialist.com
+              contact@floridatradespecialists.com
             </a>
             <div class="inline-flex items-start gap-2 text-muted">
               <UIcon name="i-lucide-map-pin" class="mt-0.5 size-4 shrink-0 text-primary" />
