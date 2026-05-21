@@ -1,2 +1,11 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@layer base {
+  header a,
+  header button:not(:disabled):not([aria-disabled="true"]),
+  aside[role="dialog"] a,
+  aside[role="dialog"] button:not(:disabled):not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}

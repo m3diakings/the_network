@@ -17,7 +17,7 @@ watch(mobileMenuOpen, (open) => {
 const mobileMenuItems = [
   { label: 'Listings', to: '/listings' },
   { label: 'Blog', to: '/blog' },
-  { label: 'Submit Business', to: '/submit-business', primary: true }
+  { label: 'Business Application', to: '/submit-business', primary: true }
 ]
 </script>
 
@@ -29,22 +29,22 @@ const mobileMenuItems = [
       <UContainer class="flex items-center justify-between gap-4 py-5">
         <NuxtLink
           to="/"
-          class="text-base font-extrabold uppercase tracking-wide text-primary sm:text-lg"
+          class="cursor-pointer text-base font-extrabold uppercase tracking-wide text-primary sm:text-lg"
         >
           Florida Trade Specialists
         </NuxtLink>
 
         <nav class="hidden items-center gap-1 md:flex md:gap-2">
-          <UButton to="/listings" color="neutral" variant="ghost" size="sm">
+          <UButton to="/listings" color="neutral" variant="ghost" size="sm" class="cursor-pointer">
             Listings
           </UButton>
-          <UButton to="/submit-business" color="primary" variant="soft" size="sm">
-            Submit Business
+          <UButton to="/submit-business" color="primary" variant="soft" size="sm" class="cursor-pointer">
+            Business Application
           </UButton>
         </nav>
 
         <UButton
-          class="md:hidden"
+          class="cursor-pointer md:hidden"
           color="neutral"
           variant="ghost"
           icon="i-lucide-menu"
@@ -89,6 +89,7 @@ const mobileMenuItems = [
               icon="i-lucide-x"
               size="md"
               aria-label="Close menu"
+              class="cursor-pointer"
               @click="mobileMenuOpen = false"
             />
           </div>
@@ -101,6 +102,7 @@ const mobileMenuItems = [
               :variant="item.primary ? 'solid' : 'ghost'"
               size="lg"
               block
+              class="cursor-pointer"
               @click="mobileMenuOpen = false"
             >
               {{ item.label }}
