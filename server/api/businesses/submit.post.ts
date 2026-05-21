@@ -8,13 +8,6 @@ type SubmissionBody = {
   bio: string
   address: string
   email: string
-  licenseNumber: string
-  licenseState?: string
-  licenseExpiresAt?: string | null
-  insuranceCarrier?: string | null
-  insuranceExpiresAt?: string | null
-  emergencyAvailable?: boolean
-  yearsInBusiness?: number | null
   logoPath: string
   licensePath: string
   insurancePath: string
@@ -85,7 +78,6 @@ export default defineEventHandler(async (event) => {
     'bio',
     'address',
     'email',
-    'licenseNumber',
     'logoPath',
     'licensePath',
     'insurancePath'
@@ -102,26 +94,6 @@ export default defineEventHandler(async (event) => {
   if (body.bio.length > 5000 || body.businessName.length > 200 || body.email.length > 320) {
     throw createError({ statusCode: 400, statusMessage: 'One or more fields exceed the maximum length.' })
   }
-  if (body.licenseNumber.length > 64) {
-    throw createError({ statusCode: 400, statusMessage: 'License number is too long.' })
-  }
-
-  const isoDate = /^\d{4}-\d{2}-\d{2}$/
-  if (body.licenseExpiresAt && !isoDate.test(body.licenseExpiresAt)) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid license expiration date.' })
-  }
-  if (body.insuranceExpiresAt && !isoDate.test(body.insuranceExpiresAt)) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid insurance expiration date.' })
-  }
-
-  const years = typeof body.yearsInBusiness === 'number' && Number.isFinite(body.yearsInBusiness)
-    ? Math.floor(body.yearsInBusiness)
-    : null
-  if (years !== null && (years < 0 || years > 200)) {
-    throw createError({ statusCode: 400, statusMessage: 'Years in business is out of range.' })
-  }
-
-  const licenseState = (body.licenseState ?? 'FL').trim().toUpperCase().slice(0, 2) || 'FL'
 
   const supabase = await serverSupabaseClient(event)
   const { error } = await supabase.from('businesses').insert({
@@ -135,13 +107,6 @@ export default defineEventHandler(async (event) => {
     license_document_path: body.licensePath,
     insurance_document_path: body.insurancePath,
     submitter_email: body.email,
-    license_number: body.licenseNumber.trim(),
-    license_state: licenseState,
-    license_expires_at: body.licenseExpiresAt || null,
-    insurance_carrier: body.insuranceCarrier?.trim() || null,
-    insurance_expires_at: body.insuranceExpiresAt || null,
-    emergency_available: Boolean(body.emergencyAvailable),
-    years_in_business: years,
     status: 'pending_review'
   })
 
