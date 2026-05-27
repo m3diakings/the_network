@@ -27,12 +27,6 @@ type BusinessRow = {
   created_at: string
 }
 
-type AreaChip = {
-  slug: string
-  name: string
-  categorySlug: string | null
-}
-
 type Business = {
   id: string
   categoryId: string | null
@@ -45,8 +39,6 @@ type Business = {
   licenseNumber: string | null
   servesStatewide: boolean
   serviceAreaSlugs: string[]
-  areaChips: AreaChip[]
-  extraAreas: number
   createdAt: string
   featured: boolean
 }
@@ -86,20 +78,6 @@ const { data: cityRows } = await useAsyncData('listings-cities', async () => {
   return (data ?? []) as { slug: string, name: string }[]
 })
 
-const cityNameBySlug = computed(() => {
-  const m = new Map<string, string>()
-  for (const c of cityRows.value ?? []) m.set(c.slug, c.name)
-  return m
-})
-
-const categorySlugById = computed(() => {
-  const m = new Map<string, string>()
-  for (const c of categoryRows.value ?? []) m.set(c.id, c.slug)
-  return m
-})
-
-const MAX_AREA_CHIPS = 3
-
 function logoUrl(path: string | null) {
   if (!path) return 'https://placehold.co/88x88/64748b/ffffff?text=Logo'
   const { data } = supabase.storage.from('business-logos').getPublicUrl(path)
@@ -107,13 +85,7 @@ function logoUrl(path: string | null) {
 }
 
 function toBusiness(row: BusinessRow): Business {
-  const catSlug = row.category_id ? categorySlugById.value.get(row.category_id) ?? null : null
   const areas = Array.isArray(row.service_areas) ? row.service_areas : []
-  const chips: AreaChip[] = areas.slice(0, MAX_AREA_CHIPS).map(slug => ({
-    slug,
-    name: cityNameBySlug.value.get(slug) ?? slug,
-    categorySlug: catSlug
-  }))
   return {
     id: row.id,
     categoryId: row.category_id,
@@ -126,8 +98,6 @@ function toBusiness(row: BusinessRow): Business {
     licenseNumber: row.license_number,
     servesStatewide: Boolean(row.serves_statewide),
     serviceAreaSlugs: areas,
-    areaChips: chips,
-    extraAreas: Math.max(0, areas.length - chips.length),
     createdAt: row.created_at,
     featured: row.featured
   }
@@ -425,34 +395,6 @@ const listingsCtaLinks = [
                   <div class="inline-flex min-w-0 items-start gap-2 text-sm text-muted">
                     <UIcon name="i-lucide-map-pin" class="mt-0.5 size-4 shrink-0 opacity-70" />
                     <span class="line-clamp-2">{{ business.address }}</span>
-                  </div>
-
-                  <div
-                    v-if="business.servesStatewide || business.areaChips.length"
-                    class="flex flex-wrap items-center gap-1.5 text-xs"
-                  >
-                    <UIcon name="i-lucide-map" class="size-3.5 text-muted" />
-                    <UBadge
-                      v-if="business.servesStatewide"
-                      color="info"
-                      variant="soft"
-                      size="sm"
-                    >
-                      Serves all of Florida
-                    </UBadge>
-                    <template v-else>
-                      <NuxtLink
-                        v-for="chip in business.areaChips"
-                        :key="chip.slug"
-                        :to="chip.categorySlug ? `/${chip.categorySlug}/${chip.slug}` : `/listings`"
-                        class="rounded-full bg-elevated/70 px-2 py-0.5 font-medium text-default hover:bg-primary/10 hover:text-primary"
-                      >
-                        {{ chip.name }}
-                      </NuxtLink>
-                      <span v-if="business.extraAreas > 0" class="text-muted">
-                        +{{ business.extraAreas }} more
-                      </span>
-                    </template>
                   </div>
 
                     <div class="flex flex-col gap-1.5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">
