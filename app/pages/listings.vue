@@ -20,9 +20,17 @@ type BusinessRow = {
   address: string
   logo_path: string | null
   license_number: string | null
+  serves_statewide: boolean
+  service_areas: string[]
   featured: boolean
   featured_order: number | null
   created_at: string
+}
+
+type AreaChip = {
+  slug: string
+  name: string
+  categorySlug: string | null
 }
 
 type Business = {
@@ -35,6 +43,10 @@ type Business = {
   address: string
   logo: string
   licenseNumber: string | null
+  servesStatewide: boolean
+  serviceAreaSlugs: string[]
+  areaChips: AreaChip[]
+  extraAreas: number
   createdAt: string
   featured: boolean
 }
@@ -49,7 +61,7 @@ const supabase = useSupabaseClient()
 const { data: businessRows } = await useAsyncData('listings', async () => {
   const { data, error } = await supabase
     .from('businesses')
-    .select('id, category_id, name, phone, website_url, bio, address, logo_path, license_number, featured, featured_order, created_at')
+    .select('id, category_id, name, phone, website_url, bio, address, logo_path, license_number, serves_statewide, service_areas, featured, featured_order, created_at')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -65,6 +77,29 @@ const { data: categoryRows } = await useAsyncData('listings-categories', async (
   return (data ?? []) as { id: string, slug: string, name: string, sort_order: number }[]
 })
 
+const { data: cityRows } = await useAsyncData('listings-cities', async () => {
+  const { data, error } = await supabase
+    .from('cities')
+    .select('slug, name')
+    .order('name', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as { slug: string, name: string }[]
+})
+
+const cityNameBySlug = computed(() => {
+  const m = new Map<string, string>()
+  for (const c of cityRows.value ?? []) m.set(c.slug, c.name)
+  return m
+})
+
+const categorySlugById = computed(() => {
+  const m = new Map<string, string>()
+  for (const c of categoryRows.value ?? []) m.set(c.id, c.slug)
+  return m
+})
+
+const MAX_AREA_CHIPS = 3
+
 function logoUrl(path: string | null) {
   if (!path) return 'https://placehold.co/88x88/64748b/ffffff?text=Logo'
   const { data } = supabase.storage.from('business-logos').getPublicUrl(path)
@@ -72,6 +107,13 @@ function logoUrl(path: string | null) {
 }
 
 function toBusiness(row: BusinessRow): Business {
+  const catSlug = row.category_id ? categorySlugById.value.get(row.category_id) ?? null : null
+  const areas = Array.isArray(row.service_areas) ? row.service_areas : []
+  const chips: AreaChip[] = areas.slice(0, MAX_AREA_CHIPS).map(slug => ({
+    slug,
+    name: cityNameBySlug.value.get(slug) ?? slug,
+    categorySlug: catSlug
+  }))
   return {
     id: row.id,
     categoryId: row.category_id,
@@ -82,6 +124,10 @@ function toBusiness(row: BusinessRow): Business {
     address: row.address,
     logo: logoUrl(row.logo_path),
     licenseNumber: row.license_number,
+    servesStatewide: Boolean(row.serves_statewide),
+    serviceAreaSlugs: areas,
+    areaChips: chips,
+    extraAreas: Math.max(0, areas.length - chips.length),
     createdAt: row.created_at,
     featured: row.featured
   }
@@ -93,6 +139,15 @@ const categoryOptions = computed<CategoryOption[]>(() => [
   { id: 'all', label: 'All categories' },
   ...(categoryRows.value ?? []).map(row => ({ id: row.id, label: row.name }))
 ])
+
+type CityOption = {
+  id: string
+  label: string
+}
+
+const cityOptions = computed<CityOption[]>(() =>
+  (cityRows.value ?? []).map(c => ({ id: c.slug, label: c.name }))
+)
 
 const sortOptions = [
   { id: 'newest', label: 'Newest first' },
@@ -111,9 +166,16 @@ function categoryIdFromSlug(slug: string | undefined) {
   return match?.id ?? 'all'
 }
 
-const initialCategorySlug = typeof route.query.category === 'string' ? route.query.category : undefined
+function citySlugFromQuery(slug: string | undefined): string | null {
+  if (!slug) return null
+  const match = (cityRows.value ?? []).find(row => row.slug === slug)
+  return match?.slug ?? null
+}
 
-const searchQuery = ref('')
+const initialCategorySlug = typeof route.query.category === 'string' ? route.query.category : undefined
+const initialCitySlug = typeof route.query.city === 'string' ? route.query.city : undefined
+
+const selectedCitySlug = ref<string | null>(citySlugFromQuery(initialCitySlug))
 const selectedCategoryId = ref<string>(categoryIdFromSlug(initialCategorySlug))
 const selectedSort = ref<SortId>('newest')
 
@@ -121,6 +183,13 @@ watch(
   () => route.query.category,
   (slug) => {
     selectedCategoryId.value = categoryIdFromSlug(typeof slug === 'string' ? slug : undefined)
+  }
+)
+
+watch(
+  () => route.query.city,
+  (slug) => {
+    selectedCitySlug.value = citySlugFromQuery(typeof slug === 'string' ? slug : undefined)
   }
 )
 
@@ -135,19 +204,27 @@ watch(selectedCategoryId, (id) => {
   })
 })
 
+watch(selectedCitySlug, (slug) => {
+  const currentSlug = typeof route.query.city === 'string' ? route.query.city : undefined
+  const nextSlug = slug ?? undefined
+  if (nextSlug === currentSlug) return
+  const { city: _omit, ...rest } = route.query
+  router.replace({
+    query: nextSlug ? { ...rest, city: nextSlug } : rest
+  })
+})
+
 const businesses = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
+  const city = selectedCitySlug.value
   const category = selectedCategoryId.value
   const sort = selectedSort.value
 
   const matches = allBusinesses.value.filter(business => {
     if (category !== 'all' && business.categoryId !== category) return false
-    if (!query) return true
-    return (
-      business.name.toLowerCase().includes(query)
-      || business.bio.toLowerCase().includes(query)
-      || business.address.toLowerCase().includes(query)
-    )
+    if (city) {
+      if (!business.servesStatewide && !business.serviceAreaSlugs.includes(city)) return false
+    }
+    return true
   })
 
   if (sort === 'name') {
@@ -170,13 +247,13 @@ const featuredBusinesses = computed(() => {
 })
 
 const hasActiveFilters = computed(() =>
-  searchQuery.value.trim().length > 0
+  selectedCitySlug.value !== null
   || selectedCategoryId.value !== 'all'
   || selectedSort.value !== 'newest'
 )
 
 function clearFilters() {
-  searchQuery.value = ''
+  selectedCitySlug.value = null
   selectedCategoryId.value = 'all'
   selectedSort.value = 'newest'
 }
@@ -215,12 +292,16 @@ const listingsCtaLinks = [
 
       <UPageBody class="mt-6 pb-16">
         <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-default/70 bg-elevated/40 p-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <UInput
-            v-model="searchQuery"
-            icon="i-lucide-search"
-            placeholder="Search by name, bio, or address"
+          <UInputMenu
+            v-model="selectedCitySlug"
+            :items="cityOptions"
+            value-key="id"
+            label-key="label"
+            icon="i-lucide-map-pin"
+            placeholder="Search a Florida city…"
             class="flex-1 min-w-[14rem]"
             size="md"
+            searchable
           />
           <USelectMenu
             v-model="selectedCategoryId"
@@ -344,6 +425,34 @@ const listingsCtaLinks = [
                   <div class="inline-flex min-w-0 items-start gap-2 text-sm text-muted">
                     <UIcon name="i-lucide-map-pin" class="mt-0.5 size-4 shrink-0 opacity-70" />
                     <span class="line-clamp-2">{{ business.address }}</span>
+                  </div>
+
+                  <div
+                    v-if="business.servesStatewide || business.areaChips.length"
+                    class="flex flex-wrap items-center gap-1.5 text-xs"
+                  >
+                    <UIcon name="i-lucide-map" class="size-3.5 text-muted" />
+                    <UBadge
+                      v-if="business.servesStatewide"
+                      color="info"
+                      variant="soft"
+                      size="sm"
+                    >
+                      Serves all of Florida
+                    </UBadge>
+                    <template v-else>
+                      <NuxtLink
+                        v-for="chip in business.areaChips"
+                        :key="chip.slug"
+                        :to="chip.categorySlug ? `/${chip.categorySlug}/${chip.slug}` : `/listings`"
+                        class="rounded-full bg-elevated/70 px-2 py-0.5 font-medium text-default hover:bg-primary/10 hover:text-primary"
+                      >
+                        {{ chip.name }}
+                      </NuxtLink>
+                      <span v-if="business.extraAreas > 0" class="text-muted">
+                        +{{ business.extraAreas }} more
+                      </span>
+                    </template>
                   </div>
 
                     <div class="flex flex-col gap-1.5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-1">

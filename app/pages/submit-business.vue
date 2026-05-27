@@ -18,6 +18,13 @@ type Category = {
   name: string
 }
 
+type City = {
+  slug: string
+  name: string
+  county: string
+  population: number | null
+}
+
 const supabase = useSupabaseClient()
 
 const { data: categories } = await useAsyncData('submit-categories', async () => {
@@ -29,9 +36,28 @@ const { data: categories } = await useAsyncData('submit-categories', async () =>
   return (data ?? []) as Category[]
 })
 
+const { data: cities } = await useAsyncData('submit-cities', async () => {
+  const { data, error } = await supabase
+    .from('cities')
+    .select('slug, name, county, population')
+    .order('population', { ascending: false, nullsFirst: false })
+    .order('name', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as City[]
+})
+
 const categoryItems = computed(() =>
   (categories.value ?? []).map(c => ({ label: c.name, value: c.id }))
 )
+
+const cityItems = computed(() =>
+  (cities.value ?? []).map(c => ({
+    label: `${c.name} — ${c.county}`,
+    value: c.slug
+  }))
+)
+
+const MAX_SERVICE_AREAS = 20
 
 const heroSignals = [
   { icon: 'i-lucide-badge-check', label: 'Free standard listing' },
@@ -117,9 +143,23 @@ const form = reactive({
   address: '',
   bio: '',
   email: '',
+  servesStatewide: false,
+  serviceAreas: [] as string[],
   logo: null as File | null,
   licenseDocument: null as File | null,
   insuranceDocument: null as File | null
+})
+
+watch(() => form.servesStatewide, (statewide) => {
+  if (statewide) {
+    form.serviceAreas = []
+  }
+})
+
+watch(() => form.serviceAreas, (areas) => {
+  if (areas.length > MAX_SERVICE_AREAS) {
+    form.serviceAreas = areas.slice(0, MAX_SERVICE_AREAS)
+  }
 })
 
 const submitting = ref(false)
@@ -199,6 +239,7 @@ const canSubmit = computed(() =>
       && form.address
       && form.bio
       && form.email
+      && (form.servesStatewide || form.serviceAreas.length > 0)
       && form.logo
       && form.licenseDocument
       && form.insuranceDocument
@@ -255,6 +296,8 @@ async function onSubmit() {
         bio: form.bio,
         address: form.address,
         email: form.email,
+        servesStatewide: form.servesStatewide,
+        serviceAreas: form.servesStatewide ? [] : form.serviceAreas,
         logoPath,
         licensePath,
         insurancePath,
@@ -388,6 +431,44 @@ async function onSubmit() {
                 placeholder="1250 E Sunrise Blvd, Florida 33304"
               />
             </UFormField>
+
+            <div class="space-y-4 rounded-xl border border-default/70 bg-elevated/30 p-4 sm:p-5">
+              <div>
+                <p class="text-sm font-semibold text-highlighted">
+                  Service area
+                </p>
+                <p class="mt-1 text-xs text-muted">
+                  Pick the Florida cities where you actually take jobs, or toggle "Serves all of Florida" if you cover the entire state.
+                </p>
+              </div>
+
+              <label class="flex w-fit items-center gap-2 rounded-lg bg-default/60 py-3">
+                <USwitch v-model="form.servesStatewide" />
+                <span class="whitespace-nowrap text-sm font-medium text-default">
+                  Serves all of Florida
+                </span>
+              </label>
+
+              <UFormField
+                v-if="!form.servesStatewide"
+                class="w-full"
+                label="Cities you serve"
+                :hint="`${form.serviceAreas.length}/${MAX_SERVICE_AREAS} selected`"
+                required
+              >
+                <UInputMenu
+                  v-model="form.serviceAreas"
+                  :items="cityItems"
+                  value-key="value"
+                  label-key="label"
+                  multiple
+                  searchable
+                  placeholder="Search cities by name…"
+                  size="xl"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
 
             <UFormField class="w-full" label="Business Bio" required>
               <UTextarea

@@ -8,12 +8,16 @@ type SubmissionBody = {
   bio: string
   address: string
   email: string
+  servesStatewide?: boolean
+  serviceAreas?: string[]
   logoPath: string
   licensePath: string
   insurancePath: string
   honeypot?: string
   turnstileToken?: string
 }
+
+const MAX_SERVICE_AREAS = 20
 
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000
 const RATE_LIMIT_MAX = 5
@@ -95,7 +99,38 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'One or more fields exceed the maximum length.' })
   }
 
+  const servesStatewide = Boolean(body.servesStatewide)
+  const rawAreas = Array.isArray(body.serviceAreas) ? body.serviceAreas : []
+  const serviceAreas = servesStatewide
+    ? []
+    : Array.from(new Set(rawAreas.filter(s => typeof s === 'string' && s.length > 0 && s.length <= 80)))
+
+  if (!servesStatewide) {
+    if (serviceAreas.length === 0) {
+      throw createError({ statusCode: 400, statusMessage: 'Select at least one service-area city or toggle "Serves all of Florida".' })
+    }
+    if (serviceAreas.length > MAX_SERVICE_AREAS) {
+      throw createError({ statusCode: 400, statusMessage: `Pick at most ${MAX_SERVICE_AREAS} cities, or toggle "Serves all of Florida".` })
+    }
+  }
+
   const supabase = await serverSupabaseClient(event)
+
+  if (serviceAreas.length > 0) {
+    const { data: validCities, error: cityError } = await supabase
+      .from('cities')
+      .select('slug')
+      .in('slug', serviceAreas)
+    if (cityError) {
+      throw createError({ statusCode: 500, statusMessage: cityError.message })
+    }
+    const validSet = new Set((validCities ?? []).map(c => c.slug))
+    const unknown = serviceAreas.filter(s => !validSet.has(s))
+    if (unknown.length > 0) {
+      throw createError({ statusCode: 400, statusMessage: `Unknown service-area cities: ${unknown.join(', ')}` })
+    }
+  }
+
   const { error } = await supabase.from('businesses').insert({
     category_id: body.categoryId,
     name: body.businessName,
@@ -107,6 +142,8 @@ export default defineEventHandler(async (event) => {
     license_document_path: body.licensePath,
     insurance_document_path: body.insurancePath,
     submitter_email: body.email,
+    serves_statewide: servesStatewide,
+    service_areas: serviceAreas,
     status: 'pending_review'
   })
 

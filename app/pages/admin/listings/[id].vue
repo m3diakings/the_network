@@ -29,6 +29,8 @@ type Business = {
   insurance_expires_at: string | null
   emergency_available: boolean
   years_in_business: number | null
+  serves_statewide: boolean
+  service_areas: string[]
   status: BusinessStatus
   verified: boolean
   featured: boolean
@@ -44,6 +46,15 @@ type CategoryRow = {
   name: string
   slug: string
 }
+
+type CityRow = {
+  slug: string
+  name: string
+  county: string
+  population: number | null
+}
+
+const MAX_SERVICE_AREAS = 20
 
 const route = useRoute()
 const router = useRouter()
@@ -77,6 +88,23 @@ const { data: categoryRows } = await useAsyncData('admin-categories-edit', async
   return (data ?? []) as CategoryRow[]
 })
 
+const { data: cityRows } = await useAsyncData('admin-cities-edit', async () => {
+  const { data, error } = await supabase
+    .from('cities')
+    .select('slug, name, county, population')
+    .order('population', { ascending: false, nullsFirst: false })
+    .order('name', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as CityRow[]
+})
+
+const cityItems = computed(() =>
+  (cityRows.value ?? []).map(c => ({
+    label: `${c.name} — ${c.county}`,
+    value: c.slug
+  }))
+)
+
 const statusOptions = [
   { id: 'pending_review', label: 'Pending review' },
   { id: 'published', label: 'Published' },
@@ -99,10 +127,24 @@ const form = reactive({
   insurance_expires_at: '',
   emergency_available: false,
   years_in_business: null as number | null,
+  serves_statewide: false,
+  service_areas: [] as string[],
   status: 'pending_review' as BusinessStatus,
   verified: false,
   featured: false,
   featured_order: null as number | null
+})
+
+watch(() => form.serves_statewide, (statewide) => {
+  if (statewide) {
+    form.service_areas = []
+  }
+})
+
+watch(() => form.service_areas, (areas) => {
+  if (areas.length > MAX_SERVICE_AREAS) {
+    form.service_areas = areas.slice(0, MAX_SERVICE_AREAS)
+  }
 })
 
 const newLogoFile = ref<File | null>(null)
@@ -130,6 +172,8 @@ function hydrateForm(b: Business) {
   form.insurance_expires_at = b.insurance_expires_at ?? ''
   form.emergency_available = Boolean(b.emergency_available)
   form.years_in_business = b.years_in_business
+  form.serves_statewide = Boolean(b.serves_statewide)
+  form.service_areas = Array.isArray(b.service_areas) ? [...b.service_areas] : []
   form.status = b.status
   form.verified = b.verified
   form.featured = b.featured
@@ -222,6 +266,12 @@ async function onSave() {
       ? Math.floor(form.years_in_business)
       : null
 
+    if (!form.serves_statewide && form.service_areas.length === 0) {
+      saveError.value = 'Pick at least one service-area city, or toggle "Serves all of Florida".'
+      saving.value = false
+      return
+    }
+
     const update: Partial<Business> = {
       name: form.name.trim(),
       category_id: form.category_id,
@@ -236,6 +286,8 @@ async function onSave() {
       insurance_expires_at: form.insurance_expires_at || null,
       emergency_available: form.emergency_available,
       years_in_business: years,
+      serves_statewide: form.serves_statewide,
+      service_areas: form.serves_statewide ? [] : form.service_areas,
       status: form.status,
       verified: form.verified,
       featured: form.featured,
@@ -375,6 +427,50 @@ const statusColors: Record<BusinessStatus, 'neutral' | 'warning' | 'success' | '
 
             <UFormField label="Bio" required>
               <UTextarea v-model="form.bio" :rows="6" size="md" class="w-full" />
+            </UFormField>
+          </div>
+        </UCard>
+
+        <UCard
+          :ui="{
+            root: 'rounded-2xl bg-default ring-0 shadow-md shadow-black/5'
+          }"
+        >
+          <template #header>
+            <h2 class="text-base font-semibold text-highlighted">
+              Service area
+            </h2>
+          </template>
+
+          <div class="space-y-4">
+            <div class="flex items-center justify-between rounded-lg bg-elevated/40 p-3">
+              <div>
+                <p class="text-sm font-medium text-default">
+                  Serves all of Florida
+                </p>
+                <p class="text-xs text-muted">
+                  Surfaces on every city page when enabled.
+                </p>
+              </div>
+              <USwitch v-model="form.serves_statewide" />
+            </div>
+
+            <UFormField
+              v-if="!form.serves_statewide"
+              label="Cities served"
+              :hint="`${form.service_areas.length}/${MAX_SERVICE_AREAS} selected`"
+            >
+              <UInputMenu
+                v-model="form.service_areas"
+                :items="cityItems"
+                value-key="value"
+                label-key="label"
+                multiple
+                searchable
+                placeholder="Search cities by name…"
+                size="md"
+                class="w-full"
+              />
             </UFormField>
           </div>
         </UCard>

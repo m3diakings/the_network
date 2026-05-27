@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   srcDir: 'app/',
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@nuxt/image', '@nuxtjs/supabase'],
+  modules: ['@nuxt/ui', '@nuxt/image', '@nuxtjs/supabase', '@nuxtjs/sitemap'],
   css: ['~/assets/css/main.css'],
   app: {
     head: {
@@ -29,6 +29,23 @@ export default defineNuxtConfig({
   },
   supabase: {
     redirect: false
+  },
+  site: {
+    url: 'https://floridatradespecialists.com',
+    name: 'Florida Trade Specialists'
+  },
+  sitemap: {
+    sources: ['/api/__sitemap__/urls'],
+    exclude: ['/admin/**']
+  },
+  routeRules: {
+    '/listings': { swr: 3600 },
+    '/plumbing/**': { swr: 3600 },
+    '/electrical/**': { swr: 3600 },
+    '/hvac/**': { swr: 3600 },
+    '/roofing/**': { swr: 3600 },
+    '/blog/**': { swr: 1800 },
+    '/admin/**': { robots: false, index: false }
   },
   runtimeConfig: {
     turnstileSecretKey: '',
