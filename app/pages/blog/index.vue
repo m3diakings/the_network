@@ -155,13 +155,17 @@ function goToPage(page: number) {
             class="group flex h-full flex-col overflow-hidden rounded-2xl border border-default/70 bg-default shadow-md shadow-black/5 transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             <div class="relative aspect-[4/3] overflow-hidden bg-elevated">
-              <img
+              <NuxtImg
                 v-if="postImage(post)"
                 :src="postImage(post)!"
                 :alt="post._embedded?.['wp:featuredmedia']?.[0]?.alt_text || stripHtml(post.title.rendered)"
                 class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                width="600"
+                height="450"
+                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                format="webp"
                 loading="lazy"
-              >
+              />
               <div v-else class="grid size-full place-items-center text-muted">
                 <UIcon name="i-lucide-image" class="size-8 opacity-50" />
               </div>

@@ -360,12 +360,14 @@ const listingsCtaLinks = [
             >
               <div class="flex flex-col sm:flex-row sm:items-stretch">
                 <div class="shrink-0 overflow-hidden bg-elevated sm:w-44 md:w-52">
-                  <img
+                  <NuxtImg
                     :src="business.logo"
                     :alt="`${business.name} logo`"
                     class="h-52 w-full object-contain p-4 sm:h-full"
+                    width="240"
+                    sizes="(min-width: 640px) 13rem, 100vw"
                     loading="lazy"
-                  >
+                  />
                 </div>
 
                 <div class="flex min-w-0 flex-1 flex-col px-5 py-5">
@@ -480,12 +482,13 @@ const listingsCtaLinks = [
                   class="rounded-xl border border-default/60 bg-default p-2.5 shadow-sm"
                 >
                   <div class="flex items-start gap-3">
-                    <img
+                    <NuxtImg
                       :src="business.logo"
                       :alt="`${business.name} logo`"
                       class="size-14 rounded-lg object-contain p-1"
+                      width="112"
                       loading="lazy"
-                    >
+                    />
 
                     <div class="min-w-0">
                       <p class="truncate text-sm font-semibold text-highlighted">

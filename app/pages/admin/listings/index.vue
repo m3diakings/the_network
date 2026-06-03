@@ -211,13 +211,14 @@ async function quickStatus(id: string, status: BusinessStatus) {
           class="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-4"
         >
           <div class="flex items-center gap-3 sm:flex-1 sm:min-w-0">
-            <img
+            <NuxtImg
               v-if="row.logo_path"
               :src="logoUrl(row.logo_path)"
               :alt="`${row.name} logo`"
               class="size-12 shrink-0 rounded-lg bg-elevated object-contain p-1"
+              width="96"
               loading="lazy"
-            >
+            />
             <div v-else class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-elevated text-muted">
               <UIcon name="i-lucide-image" class="size-5" />
             </div>

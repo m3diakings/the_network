@@ -27,6 +27,16 @@ export default defineNuxtConfig({
   ui: {
     colorMode: false
   },
+  image: {
+    quality: 80,
+    domains: [
+      'mlcimhopkhjbjzbruddm.supabase.co',
+      'wp.floridatradespecialists.com',
+      'secure.gravatar.com',
+      'placehold.co',
+      'picsum.photos'
+    ]
+  },
   supabase: {
     redirect: false
   },

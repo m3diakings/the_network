@@ -170,13 +170,14 @@ useSeoMeta({
 
           <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted">
             <div class="inline-flex items-center gap-2">
-              <img
+              <NuxtImg
                 v-if="authorAvatar"
                 :src="authorAvatar"
                 :alt="authorName"
                 class="size-7 rounded-full"
+                width="56"
                 loading="lazy"
-              >
+              />
               <span class="font-medium text-default">{{ authorName }}</span>
             </div>
             <span class="opacity-40">·</span>
@@ -191,11 +192,16 @@ useSeoMeta({
           v-if="heroImage"
           class="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl border border-default/70 bg-elevated"
         >
-          <img
+          <NuxtImg
             :src="heroImage"
             :alt="heroImageAlt"
             class="size-full object-cover"
-          >
+            width="1200"
+            height="675"
+            sizes="(min-width: 768px) 768px, 100vw"
+            format="webp"
+            loading="lazy"
+          />
         </div>
 
         <div

@@ -285,12 +285,14 @@ useHead({
         >
           <div class="flex flex-col sm:flex-row sm:items-stretch">
             <div class="shrink-0 overflow-hidden bg-elevated sm:w-44 md:w-52">
-              <img
+              <NuxtImg
                 :src="logoUrl(business.logo_path)"
                 :alt="`${business.name} logo`"
                 class="h-52 w-full object-contain p-4 sm:h-full"
+                width="240"
+                sizes="(min-width: 640px) 13rem, 100vw"
                 loading="lazy"
-              >
+              />
             </div>
 
             <div class="flex min-w-0 flex-1 flex-col px-5 py-5">

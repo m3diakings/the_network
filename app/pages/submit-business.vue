@@ -567,11 +567,16 @@ async function onSubmit() {
     <div class="flex flex-col pb-20" :class="landingStackGap">
       <section class="relative isolate overflow-hidden py-20 sm:py-28 lg:py-32">
         <div class="absolute inset-0 -z-10">
-          <img
+          <NuxtImg
             src="/images/how_it_works.png"
             alt=""
             class="size-full object-cover object-center"
-          >
+            width="1920"
+            height="1080"
+            sizes="100vw"
+            format="webp"
+            loading="lazy"
+          />
           <div class="absolute inset-0 bg-stone-950/75" />
         </div>
 
@@ -625,12 +630,16 @@ async function onSubmit() {
         <div
           class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
         >
-          <img
+          <NuxtImg
             src="/images/for_contractors.png"
             alt="Contractor managing their listing on Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
+            width="1000"
+            height="750"
+            sizes="100vw lg:50vw"
+            format="webp"
             loading="lazy"
-          >
+          />
         </div>
       </UPageSection>
 

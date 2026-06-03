@@ -282,13 +282,14 @@ const ctaLinks = [
                   class="grid size-9 place-items-center overflow-hidden rounded-full border-2 border-default bg-elevated text-[11px] font-semibold text-default shadow-sm"
                   :title="avatar.name"
                 >
-                  <img
+                  <NuxtImg
                     v-if="avatar.logoUrl"
                     :src="avatar.logoUrl"
                     :alt="avatar.name"
                     class="size-full object-contain p-0.5"
+                    width="72"
                     loading="lazy"
-                  >
+                  />
                   <template v-else>
                     {{ avatar.initials }}
                   </template>
@@ -350,12 +351,16 @@ const ctaLinks = [
               :to="{ path: '/listings', query: { category: item.slug } }"
               class="group relative block h-80 overflow-hidden rounded-2xl border border-default/70 shadow-lg shadow-black/10 sm:h-96"
             >
-              <img
+              <NuxtImg
                 :src="item.image"
                 :alt="item.title"
                 class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                width="900"
+                height="600"
+                sizes="100vw sm:50vw lg:33vw"
+                format="webp"
                 loading="lazy"
-              >
+              />
               <div class="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
               <div class="relative flex h-full flex-col justify-end p-5 text-white">
                 <div class="flex size-10 items-center justify-center rounded-full bg-white/15 backdrop-blur">
@@ -392,22 +397,31 @@ const ctaLinks = [
         <div
           class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
         >
-          <img
+          <NuxtImg
             src="/images/whyus.png"
             alt="Verified local pros on Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
+            width="1000"
+            height="750"
+            sizes="100vw lg:50vw"
+            format="webp"
             loading="lazy"
-          >
+          />
         </div>
       </UPageSection>
 
       <section class="relative isolate overflow-hidden py-20 sm:py-28 lg:py-32">
         <div class="absolute inset-0 -z-10">
-          <img
+          <NuxtImg
             src="/images/how_it_works.png"
             alt=""
             class="size-full object-cover object-center"
-          >
+            width="1920"
+            height="1080"
+            sizes="100vw"
+            format="webp"
+            loading="lazy"
+          />
           <div class="absolute inset-0 bg-stone-950/75" />
         </div>
 
@@ -461,12 +475,16 @@ const ctaLinks = [
         <div
           class="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-default/70 shadow-xl lg:aspect-auto lg:h-full lg:self-stretch"
         >
-          <img
+          <NuxtImg
             src="/images/homeowners.png"
             alt="Homeowner calling a verified pro through Florida Trade Specialists"
             class="absolute inset-0 size-full object-cover object-center"
+            width="1000"
+            height="750"
+            sizes="100vw lg:50vw"
+            format="webp"
             loading="lazy"
-          >
+          />
         </div>
       </UPageSection>
 

@@ -488,18 +488,20 @@ const statusColors: Record<BusinessStatus, 'neutral' | 'warning' | 'success' | '
 
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div class="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-elevated">
+              <!-- plain img: newLogoPreview is a blob: URL the optimizer can't process -->
               <img
                 v-if="newLogoPreview"
                 :src="newLogoPreview"
                 alt="New logo preview"
                 class="size-full object-contain p-2"
               >
-              <img
+              <NuxtImg
                 v-else-if="business.logo_path"
                 :src="logoUrl(business.logo_path)"
                 alt="Current logo"
                 class="size-full object-contain p-2"
-              >
+                width="192"
+              />
               <UIcon v-else name="i-lucide-image" class="size-8 text-muted" />
             </div>
 
