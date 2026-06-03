@@ -39,11 +39,6 @@ export default defineNuxtConfig({
     exclude: ['/admin/**']
   },
   routeRules: {
-    '/listings': { swr: 3600 },
-    '/plumbing/**': { swr: 3600 },
-    '/electrical/**': { swr: 3600 },
-    '/hvac/**': { swr: 3600 },
-    '/roofing/**': { swr: 3600 },
     '/blog/**': { swr: 1800 },
     '/admin/**': { robots: false, index: false }
   },
