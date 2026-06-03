@@ -363,7 +363,7 @@ const listingsCtaLinks = [
                   <img
                     :src="business.logo"
                     :alt="`${business.name} logo`"
-                    class="h-52 w-full object-cover sm:h-full"
+                    class="h-52 w-full object-contain p-4 sm:h-full"
                     loading="lazy"
                   >
                 </div>
@@ -483,7 +483,7 @@ const listingsCtaLinks = [
                     <img
                       :src="business.logo"
                       :alt="`${business.name} logo`"
-                      class="size-14 rounded-lg object-cover"
+                      class="size-14 rounded-lg object-contain p-1"
                       loading="lazy"
                     >
 

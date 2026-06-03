@@ -285,7 +285,7 @@ const ctaLinks = [
                     v-if="avatar.logoUrl"
                     :src="avatar.logoUrl"
                     :alt="avatar.name"
-                    class="size-full object-cover"
+                    class="size-full object-contain p-0.5"
                     loading="lazy"
                   >
                   <template v-else>

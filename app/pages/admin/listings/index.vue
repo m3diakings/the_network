@@ -215,7 +215,7 @@ async function quickStatus(id: string, status: BusinessStatus) {
               v-if="row.logo_path"
               :src="logoUrl(row.logo_path)"
               :alt="`${row.name} logo`"
-              class="size-12 shrink-0 rounded-lg object-cover"
+              class="size-12 shrink-0 rounded-lg bg-elevated object-contain p-1"
               loading="lazy"
             >
             <div v-else class="flex size-12 shrink-0 items-center justify-center rounded-lg bg-elevated text-muted">

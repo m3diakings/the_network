@@ -492,13 +492,13 @@ const statusColors: Record<BusinessStatus, 'neutral' | 'warning' | 'success' | '
                 v-if="newLogoPreview"
                 :src="newLogoPreview"
                 alt="New logo preview"
-                class="size-full object-cover"
+                class="size-full object-contain p-2"
               >
               <img
                 v-else-if="business.logo_path"
                 :src="logoUrl(business.logo_path)"
                 alt="Current logo"
-                class="size-full object-cover"
+                class="size-full object-contain p-2"
               >
               <UIcon v-else name="i-lucide-image" class="size-8 text-muted" />
             </div>
