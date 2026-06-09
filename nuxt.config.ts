@@ -21,6 +21,10 @@ export default defineNuxtConfig({
         { property: 'og:image', content: '/images/whyus.png' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:image', content: '/images/whyus.png' }
+      ],
+      script: [
+        { src: 'https://www.googletagmanager.com/gtag/js?id=G-Q9DQYNC6PW', async: true },
+        { innerHTML: "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-Q9DQYNC6PW');" }
       ]
     }
   },
