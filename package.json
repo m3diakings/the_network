@@ -7,17 +7,22 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "scrape:google": "node --env-file=.env --import tsx scripts/scrape-google-businesses.ts"
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.7.1",
     "@nuxtjs/sitemap": "^8.0.15",
     "@nuxtjs/supabase": "^2.0.6",
+    "@supabase/supabase-js": "^2.108.2",
     "nuxt": "^4.4.4",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4"
   }
 }
