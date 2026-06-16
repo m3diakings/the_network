@@ -40,6 +40,7 @@ const FIELD_MASK = [
   'places.internationalPhoneNumber',
   'places.websiteUri',
   'places.editorialSummary',
+  'places.generativeSummary',
   'places.rating',
   'places.userRatingCount',
   'places.types',
@@ -60,6 +61,7 @@ interface PlaceResult {
   internationalPhoneNumber?: string
   websiteUri?: string
   editorialSummary?: { text?: string }
+  generativeSummary?: { overview?: { text?: string } }
   rating?: number
   userRatingCount?: number
   types?: string[]
@@ -196,9 +198,11 @@ function mapToBusinessRow(
   const address = place.formattedAddress?.trim()
   if (!address) return { skip: 'no-address' }
 
+  const categoryLabel = categorySlug === 'hvac' ? 'HVAC' : categorySlug
   const bio =
+    place.generativeSummary?.overview?.text?.trim() ||
     place.editorialSummary?.text?.trim() ||
-    `${name} is a ${categorySlug} service serving Florida. Listing imported from public business profiles; details pending owner verification.`
+    `${name} is a Florida ${categoryLabel} contractor.`
 
   return {
     row: {

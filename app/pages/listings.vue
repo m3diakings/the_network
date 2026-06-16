@@ -465,7 +465,7 @@ const listingsCtaLinks = [
                       </UBadge>
                     </div>
 
-                  <p class="text-sm leading-relaxed text-muted line-clamp-3">
+                  <p class="text-sm leading-relaxed text-muted line-clamp-2">
                     {{ business.bio }}
                   </p>
 
