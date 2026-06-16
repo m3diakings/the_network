@@ -288,7 +288,7 @@ useHead({
               <NuxtImg
                 :src="logoUrl(business.logo_path)"
                 :alt="`${business.name} logo`"
-                class="h-52 w-full object-contain p-4 sm:h-full"
+                class="h-52 w-full object-cover sm:h-full"
                 width="240"
                 sizes="(min-width: 640px) 13rem, 100vw"
                 loading="lazy"
