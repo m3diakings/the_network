@@ -41,6 +41,7 @@ type Business = {
   serviceAreaSlugs: string[]
   createdAt: string
   featured: boolean
+  featuredOrder: number | null
 }
 
 type CategoryOption = {
@@ -99,7 +100,8 @@ function toBusiness(row: BusinessRow): Business {
     servesStatewide: Boolean(row.serves_statewide),
     serviceAreaSlugs: areas,
     createdAt: row.created_at,
-    featured: row.featured
+    featured: row.featured,
+    featuredOrder: row.featured_order
   }
 }
 
@@ -145,9 +147,17 @@ function citySlugFromQuery(slug: string | undefined): string | null {
 const initialCategorySlug = typeof route.query.category === 'string' ? route.query.category : undefined
 const initialCitySlug = typeof route.query.city === 'string' ? route.query.city : undefined
 
+const PAGE_SIZE = 25
+
+function pageFromQuery(raw: unknown): number {
+  const n = typeof raw === 'string' ? parseInt(raw, 10) : NaN
+  return Number.isFinite(n) && n >= 1 ? n : 1
+}
+
 const selectedCitySlug = ref<string | null>(citySlugFromQuery(initialCitySlug))
 const selectedCategoryId = ref<string>(categoryIdFromSlug(initialCategorySlug))
 const selectedSort = ref<SortId>('newest')
+const currentPage = ref<number>(pageFromQuery(route.query.page))
 
 watch(
   () => route.query.category,
@@ -184,6 +194,29 @@ watch(selectedCitySlug, (slug) => {
   })
 })
 
+watch(
+  () => route.query.page,
+  (raw) => {
+    const next = pageFromQuery(raw)
+    if (next !== currentPage.value) currentPage.value = next
+  }
+)
+
+watch(currentPage, (page) => {
+  const currentRaw = typeof route.query.page === 'string' ? route.query.page : undefined
+  const next = page > 1 ? String(page) : undefined
+  if (next === currentRaw) return
+  const { page: _omit, ...rest } = route.query
+  router.replace({
+    query: next ? { ...rest, page: next } : rest
+  })
+  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+watch([selectedCitySlug, selectedCategoryId, selectedSort], () => {
+  if (currentPage.value !== 1) currentPage.value = 1
+})
+
 const businesses = computed(() => {
   const city = selectedCitySlug.value
   const category = selectedCategoryId.value
@@ -197,15 +230,42 @@ const businesses = computed(() => {
     return true
   })
 
-  if (sort === 'name') {
-    matches.sort((a, b) => a.name.localeCompare(b.name))
-  } else if (sort === 'oldest') {
-    matches.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-  } else {
-    matches.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const secondary = (a: Business, b: Business) => {
+    if (sort === 'name') return a.name.localeCompare(b.name)
+    if (sort === 'oldest') return a.createdAt.localeCompare(b.createdAt)
+    return b.createdAt.localeCompare(a.createdAt)
   }
 
+  matches.sort((a, b) => {
+    if (a.featured !== b.featured) return a.featured ? -1 : 1
+    if (a.featured && b.featured) {
+      const ao = a.featuredOrder ?? Number.POSITIVE_INFINITY
+      const bo = b.featuredOrder ?? Number.POSITIVE_INFINITY
+      if (ao !== bo) return ao - bo
+    }
+    return secondary(a, b)
+  })
+
   return matches
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(businesses.value.length / PAGE_SIZE)))
+
+const paginatedBusinesses = computed(() => {
+  const page = Math.min(Math.max(1, currentPage.value), totalPages.value)
+  const start = (page - 1) * PAGE_SIZE
+  return businesses.value.slice(start, start + PAGE_SIZE)
+})
+
+const pageRangeStart = computed(() =>
+  businesses.value.length === 0 ? 0 : (currentPage.value - 1) * PAGE_SIZE + 1
+)
+const pageRangeEnd = computed(() =>
+  Math.min(currentPage.value * PAGE_SIZE, businesses.value.length)
+)
+
+watch(totalPages, (total) => {
+  if (currentPage.value > total) currentPage.value = total
 })
 
 const featuredBusinesses = computed(() => {
@@ -226,6 +286,7 @@ function clearFilters() {
   selectedCitySlug.value = null
   selectedCategoryId.value = 'all'
   selectedSort.value = 'newest'
+  currentPage.value = 1
 }
 
 function phoneHref(phone: string) {
@@ -313,8 +374,15 @@ const listingsCtaLinks = [
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              Showing <span class="font-semibold text-default">{{ businesses.length }}</span>
-              of {{ allBusinesses.length }} {{ allBusinesses.length === 1 ? 'business' : 'businesses' }}
+              <template v-if="businesses.length === 0">
+                Showing <span class="font-semibold text-default">0</span>
+                of {{ allBusinesses.length }} {{ allBusinesses.length === 1 ? 'business' : 'businesses' }}
+              </template>
+              <template v-else>
+                Showing
+                <span class="font-semibold text-default">{{ pageRangeStart }}–{{ pageRangeEnd }}</span>
+                of {{ businesses.length }} {{ businesses.length === 1 ? 'business' : 'businesses' }}
+              </template>
             </p>
 
             <UCard
@@ -355,7 +423,7 @@ const listingsCtaLinks = [
             </UCard>
 
             <UCard
-              v-for="business in businesses"
+              v-for="business in paginatedBusinesses"
               :key="business.id"
               variant="subtle"
               :ui="{
@@ -459,6 +527,16 @@ const listingsCtaLinks = [
                 </div>
               </div>
             </UCard>
+
+            <div v-if="totalPages > 1" class="flex justify-center pt-2">
+              <UPagination
+                v-model:page="currentPage"
+                :total="businesses.length"
+                :items-per-page="PAGE_SIZE"
+                :sibling-count="1"
+                show-edges
+              />
+            </div>
           </div>
 
           <aside class="lg:sticky lg:top-6">
