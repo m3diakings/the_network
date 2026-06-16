@@ -16,9 +16,12 @@
  *   SUPABASE_SERVICE_KEY   Service role key (bypasses RLS — server-only)
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 type CategoryQuery = { slug: string; query: string }
+
+const LOGO_BUCKET = 'business-logos'
+const LOGO_MAX_HEIGHT_PX = 800
 
 const CATEGORIES: CategoryQuery[] = [
   { slug: 'plumbing', query: 'plumbers in Florida' },
@@ -40,7 +43,14 @@ const FIELD_MASK = [
   'places.rating',
   'places.userRatingCount',
   'places.types',
+  'places.photos',
 ].join(',')
+
+interface PlacePhoto {
+  name: string
+  widthPx?: number
+  heightPx?: number
+}
 
 interface PlaceResult {
   id: string
@@ -53,6 +63,7 @@ interface PlaceResult {
   rating?: number
   userRatingCount?: number
   types?: string[]
+  photos?: PlacePhoto[]
 }
 
 interface BusinessRow {
@@ -66,6 +77,7 @@ interface BusinessRow {
   verified: false
   service_areas: string[]
   google_place_id: string
+  logo_path: string | null
 }
 
 type SkipReason = 'no-website' | 'no-phone' | 'no-name' | 'no-address' | 'duplicate'
@@ -73,6 +85,8 @@ type SkipReason = 'no-website' | 'no-phone' | 'no-name' | 'no-address' | 'duplic
 interface CategoryStats {
   fetched: number
   inserted: number
+  withLogo: number
+  logoFailed: number
   skipped: Record<SkipReason, number>
 }
 
@@ -90,6 +104,54 @@ function normalizeWebsite(url: string | undefined): string | null {
   const trimmed = url.trim()
   if (!/^https?:\/\//i.test(trimmed)) return null
   return trimmed
+}
+
+function extFromContentType(contentType: string | null): string | null {
+  if (!contentType) return null
+  const ct = contentType.toLowerCase().split(';')[0].trim()
+  if (ct === 'image/jpeg' || ct === 'image/jpg') return 'jpg'
+  if (ct === 'image/png') return 'png'
+  if (ct === 'image/webp') return 'webp'
+  return null
+}
+
+async function fetchAndUploadLogo(
+  place: PlaceResult,
+  supabase: SupabaseClient,
+  apiKey: string,
+): Promise<string | null> {
+  const photo = place.photos?.[0]
+  if (!photo?.name) return null
+
+  const url = `https://places.googleapis.com/v1/${photo.name}/media?key=${apiKey}&maxHeightPx=${LOGO_MAX_HEIGHT_PX}`
+  const res = await fetch(url, { redirect: 'follow' })
+  if (!res.ok) {
+    console.warn(`  photo fetch failed (${res.status}) for ${place.id}`)
+    return null
+  }
+
+  const contentType = res.headers.get('content-type')
+  const ext = extFromContentType(contentType)
+  if (!ext) {
+    console.warn(`  unsupported photo content-type "${contentType}" for ${place.id}`)
+    return null
+  }
+
+  const bytes = new Uint8Array(await res.arrayBuffer())
+  const path = `google/${place.id}/logo.${ext}`
+
+  const { error: uploadErr } = await supabase.storage
+    .from(LOGO_BUCKET)
+    .upload(path, bytes, {
+      contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+      upsert: true,
+    })
+  if (uploadErr) {
+    console.warn(`  logo upload failed for ${place.id}: ${uploadErr.message}`)
+    return null
+  }
+
+  return path
 }
 
 async function searchPlaces(query: string, apiKey: string): Promise<PlaceResult[]> {
@@ -150,6 +212,7 @@ function mapToBusinessRow(
       verified: false,
       service_areas: [],
       google_place_id: place.id,
+      logo_path: null,
     },
   }
 }
@@ -158,6 +221,8 @@ function emptyStats(): CategoryStats {
   return {
     fetched: 0,
     inserted: 0,
+    withLogo: 0,
+    logoFailed: 0,
     skipped: { 'no-website': 0, 'no-phone': 0, 'no-name': 0, 'no-address': 0, duplicate: 0 },
   }
 }
@@ -219,6 +284,19 @@ async function main() {
         stats.skipped[mapped.skip]++
         continue
       }
+
+      if (!dryRun) {
+        const logoPath = await fetchAndUploadLogo(place, supabase, apiKey)
+        if (logoPath) {
+          mapped.row.logo_path = logoPath
+          stats.withLogo++
+        } else if (place.photos?.length) {
+          stats.logoFailed++
+        }
+      } else if (place.photos?.length) {
+        stats.withLogo++
+      }
+
       toInsert.push(mapped.row)
       existingPlaceIds.add(place.id)
     }
@@ -243,7 +321,7 @@ async function main() {
 
     const sk = stats.skipped
     console.log(
-      `  fetched=${stats.fetched} inserted=${stats.inserted} dup=${sk.duplicate} no-website=${sk['no-website']} no-phone=${sk['no-phone']} no-name=${sk['no-name']} no-address=${sk['no-address']}\n`,
+      `  fetched=${stats.fetched} inserted=${stats.inserted} logos=${stats.withLogo} logo-failed=${stats.logoFailed} dup=${sk.duplicate} no-website=${sk['no-website']} no-phone=${sk['no-phone']} no-name=${sk['no-name']} no-address=${sk['no-address']}\n`,
     )
   }
 
@@ -251,14 +329,16 @@ async function main() {
     (acc, s) => ({
       fetched: acc.fetched + s.fetched,
       inserted: acc.inserted + s.inserted,
+      withLogo: acc.withLogo + s.withLogo,
+      logoFailed: acc.logoFailed + s.logoFailed,
       duplicate: acc.duplicate + s.skipped.duplicate,
       noWebsite: acc.noWebsite + s.skipped['no-website'],
       noPhone: acc.noPhone + s.skipped['no-phone'],
     }),
-    { fetched: 0, inserted: 0, duplicate: 0, noWebsite: 0, noPhone: 0 },
+    { fetched: 0, inserted: 0, withLogo: 0, logoFailed: 0, duplicate: 0, noWebsite: 0, noPhone: 0 },
   )
   console.log(
-    `Totals: fetched=${totals.fetched} inserted=${totals.inserted} dup=${totals.duplicate} no-website=${totals.noWebsite} no-phone=${totals.noPhone}${dryRun ? ' (dry-run — nothing written)' : ''}`,
+    `Totals: fetched=${totals.fetched} inserted=${totals.inserted} logos=${totals.withLogo} logo-failed=${totals.logoFailed} dup=${totals.duplicate} no-website=${totals.noWebsite} no-phone=${totals.noPhone}${dryRun ? ' (dry-run — nothing written)' : ''}`,
   )
 }
 
