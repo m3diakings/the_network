@@ -372,7 +372,7 @@ const listingsCtaLinks = [
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-          <div class="space-y-4">
+          <div class="min-w-0 space-y-4">
             <p class="text-sm text-muted">
               <template v-if="businesses.length === 0">
                 Showing <span class="font-semibold text-default">0</span>
@@ -434,11 +434,11 @@ const listingsCtaLinks = [
               }"
             >
               <div class="flex flex-col sm:flex-row sm:items-stretch">
-                <div class="shrink-0 overflow-hidden bg-elevated sm:w-44 md:w-52">
+                <div class="w-full shrink-0 overflow-hidden bg-elevated sm:w-44 md:w-52">
                   <NuxtImg
                     :src="business.logo"
                     :alt="`${business.name} logo`"
-                    class="h-52 w-full object-cover"
+                    class="h-52 w-full max-w-full object-cover"
                     width="240"
                     sizes="(min-width: 640px) 13rem, 100vw"
                     loading="lazy"
