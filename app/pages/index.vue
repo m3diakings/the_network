@@ -100,7 +100,8 @@ const categoryImageOverrides: Record<string, string> = {
   electrical: '/images/categories/electrical.png',
   hvac: '/images/categories/hvac.png',
   roofing: '/images/categories/roofing.png',
-  'general-contractor': '/images/categories/general-contractor.png'
+  'general-contractor': '/images/categories/general-contractor.png',
+  'code-compliance-permit-expediting': '/images/categories/code-compliance-permit-expediting.jpeg'
 }
 
 function categoryImage(slug: string) {
