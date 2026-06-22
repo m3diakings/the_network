@@ -258,15 +258,13 @@ const ctaLinks = [
               Browse vetted plumbers, electricians, HVAC techs, and roofers — license-backed profiles with one tap to call.
             </p>
 
-            <div class="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <div class="mt-9 flex flex-col items-center gap-3 sm:flex-row">
               <UButton
                 to="/listings"
                 size="xl"
                 color="secondary"
                 icon="i-lucide-search"
                 trailing-icon="i-lucide-arrow-right"
-                block
-                class="sm:w-auto"
               >
                 Find a pro
               </UButton>
