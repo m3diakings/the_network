@@ -159,10 +159,10 @@ function goToPage(page: number) {
                 v-if="postImage(post)"
                 :src="postImage(post)!"
                 :alt="post._embedded?.['wp:featuredmedia']?.[0]?.alt_text || stripHtml(post.title.rendered)"
-                class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                 width="600"
                 height="450"
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                sizes="100vw sm:50vw lg:33vw"
                 format="webp"
                 loading="lazy"
               />

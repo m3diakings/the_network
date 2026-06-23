@@ -195,7 +195,7 @@ useSeoMeta({
           <NuxtImg
             :src="heroImage"
             :alt="heroImageAlt"
-            class="size-full object-cover"
+            class="absolute inset-0 size-full object-cover"
             width="1200"
             height="675"
             sizes="100vw md:768px"
