@@ -441,7 +441,7 @@ const listingsCtaLinks = [
                     class="h-full w-full max-w-full object-cover"
                     width="240"
                     height="240"
-                    sizes="(min-width: 640px) 13rem, 100vw"
+                    sizes="100vw sm:176px md:208px"
                     loading="lazy"
                   />
                 </div>

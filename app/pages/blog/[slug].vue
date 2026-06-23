@@ -198,7 +198,7 @@ useSeoMeta({
             class="size-full object-cover"
             width="1200"
             height="675"
-            sizes="(min-width: 768px) 768px, 100vw"
+            sizes="100vw md:768px"
             format="webp"
             loading="lazy"
           />
