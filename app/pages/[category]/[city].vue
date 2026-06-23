@@ -284,11 +284,11 @@ useHead({
           }"
         >
           <div class="flex flex-col sm:flex-row sm:items-stretch">
-            <div class="w-full shrink-0 overflow-hidden bg-elevated sm:w-44 md:w-52">
+            <div class="h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-44 sm:min-w-44 md:w-52 md:min-w-52">
               <NuxtImg
                 :src="logoUrl(business.logo_path)"
                 :alt="`${business.name} logo`"
-                class="h-52 w-full max-w-full object-cover"
+                class="h-full w-full max-w-full object-cover"
                 width="240"
                 sizes="(min-width: 640px) 13rem, 100vw"
                 loading="lazy"
