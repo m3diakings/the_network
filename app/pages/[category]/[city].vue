@@ -283,7 +283,7 @@ useHead({
             footer: '!p-0'
           }"
         >
-          <div class="flex flex-col sm:flex-row sm:items-stretch">
+          <div class="flex flex-col sm:h-60 sm:flex-row sm:items-stretch">
             <div class="relative h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-44 sm:min-w-44 md:w-52 md:min-w-52">
               <NuxtImg
                 :src="logoUrl(business.logo_path)"
@@ -296,7 +296,7 @@ useHead({
             </div>
 
             <div class="flex min-w-0 flex-1 flex-col px-5 py-5">
-              <div class="space-y-2">
+              <div class="space-y-2 min-h-0 sm:flex-1 sm:overflow-hidden">
                 <div class="flex flex-wrap items-center gap-2">
                   <h2 class="truncate text-lg font-semibold tracking-tight text-highlighted sm:text-xl">
                     {{ business.name }}
