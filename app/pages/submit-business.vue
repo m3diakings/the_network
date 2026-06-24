@@ -570,10 +570,10 @@ async function onSubmit() {
           <NuxtImg
             src="/images/how_it_works.png"
             alt=""
-            class="size-full object-cover object-center"
+            class="absolute inset-0 size-full object-cover object-center"
             width="1920"
             height="1080"
-            sizes="100vw"
+            sizes="100vw sm:100vw lg:100vw"
             format="webp"
             loading="lazy"
           />
