@@ -20,6 +20,12 @@ type CityRow = {
   is_featured: boolean
 }
 
+type CountyRow = {
+  slug: string
+  name: string
+  region: string
+}
+
 const REGION_LABELS: Record<string, string> = {
   'south': 'South Florida',
   'tampa-bay': 'Tampa Bay',
@@ -85,6 +91,18 @@ const { data: cityRows } = await useAsyncData(
   }
 )
 
+const { data: countyRows } = await useAsyncData(
+  `cat-${categorySlug.value}-counties`,
+  async () => {
+    const { data, error } = await supabase
+      .from('counties')
+      .select('slug, name, region')
+      .order('name', { ascending: true })
+    if (error) throw error
+    return (data ?? []) as CountyRow[]
+  }
+)
+
 const { data: counts } = await useAsyncData(
   `cat-${categorySlug.value}-counts`,
   async () => {
@@ -127,6 +145,22 @@ const citiesByRegion = computed(() => {
       region: r,
       label: REGION_LABELS[r] ?? r,
       cities: groups.get(r)!
+    }))
+})
+
+const countiesByRegion = computed(() => {
+  const groups = new Map<string, CountyRow[]>()
+  for (const c of countyRows.value ?? []) {
+    const region = c.region || 'other'
+    if (!groups.has(region)) groups.set(region, [])
+    groups.get(region)!.push(c)
+  }
+  return REGION_ORDER
+    .filter(r => groups.has(r))
+    .map(r => ({
+      region: r,
+      label: REGION_LABELS[r] ?? r,
+      counties: groups.get(r)!
     }))
 })
 
@@ -236,6 +270,33 @@ useHead({
           </div>
           <UIcon name="i-lucide-arrow-right" class="size-5 text-muted group-hover:text-primary" />
         </NuxtLink>
+      </div>
+    </UContainer>
+
+    <UContainer v-if="(countyRows ?? []).length" class="py-10 sm:py-14">
+      <h2 class="text-2xl font-semibold tracking-tight text-highlighted">
+        Browse {{ category!.name.toLowerCase() }} by county
+      </h2>
+      <p class="mt-1 text-sm text-muted">
+        See every verified pro across a whole county in one place.
+      </p>
+
+      <div class="mt-6 space-y-8">
+        <div v-for="group in countiesByRegion" :key="group.region">
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-primary">
+            {{ group.label }}
+          </h3>
+          <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <li v-for="c in group.counties" :key="c.slug">
+              <NuxtLink
+                :to="`/${categorySlug}/county/${c.slug}`"
+                class="text-default hover:text-primary"
+              >
+                {{ c.name }} County
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
       </div>
     </UContainer>
 
