@@ -255,7 +255,7 @@ const ctaLinks = [
             </h1>
 
             <p class="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted sm:text-xl">
-              Browse vetted plumbers, electricians, HVAC techs, and roofers — license-backed profiles with one tap to call.
+              Search licensed electricians, plumbers, HVAC contractors, roofers, generators, and specialty trades across Florida.
             </p>
 
             <div class="mt-9 flex flex-col items-center gap-3 sm:flex-row">
