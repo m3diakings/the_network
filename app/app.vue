@@ -157,6 +157,9 @@ const { data: footerCategories } = await useAsyncData('footer-categories', async
             <NuxtLink to="/blog" class="text-default hover:text-primary">
               Blog
             </NuxtLink>
+            <NuxtLink to="/faq" class="text-default hover:text-primary">
+              FAQ
+            </NuxtLink>
             <NuxtLink to="/submit-business" class="text-default hover:text-primary">
               Submit
             </NuxtLink>
