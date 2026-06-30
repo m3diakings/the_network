@@ -181,18 +181,11 @@ const { data: footerCategories } = await useAsyncData('footer-categories', async
               Contact
             </p>
             <a
-              href="tel:3059570088"
-              class="inline-flex items-center gap-2 text-default hover:text-primary"
-            >
-              <UIcon name="i-lucide-phone" class="size-4 text-primary" />
-              (305) 957-0088
-            </a>
-            <a
-              href="mailto:contact@floridatradespecialists.com"
+              href="mailto:info@floridatradespecialists.com"
               class="inline-flex items-center gap-2 break-all text-default hover:text-primary"
             >
               <UIcon name="i-lucide-mail" class="size-4 shrink-0 text-primary" />
-              contact@floridatradespecialists.com
+              info@floridatradespecialists.com
             </a>
             <div class="inline-flex items-start gap-2 text-muted">
               <UIcon name="i-lucide-map-pin" class="mt-0.5 size-4 shrink-0 text-primary" />
