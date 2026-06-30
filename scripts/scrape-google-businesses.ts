@@ -79,6 +79,9 @@ interface BusinessRow {
   verified: false
   service_areas: string[]
   google_place_id: string
+  google_rating: number | null
+  google_rating_count: number | null
+  google_reviews_synced_at: string | null
   logo_path: string | null
 }
 
@@ -216,6 +219,11 @@ function mapToBusinessRow(
       verified: false,
       service_areas: [],
       google_place_id: place.id,
+      google_rating: place.rating ?? null,
+      google_rating_count: place.userRatingCount ?? null,
+      google_reviews_synced_at: place.rating != null || place.userRatingCount != null
+        ? new Date().toISOString()
+        : null,
       logo_path: null,
     },
   }

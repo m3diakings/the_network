@@ -25,6 +25,8 @@ type BusinessRow = {
   featured: boolean
   featured_order: number | null
   created_at: string
+  google_rating: number | null
+  google_rating_count: number | null
 }
 
 type Business = {
@@ -42,6 +44,8 @@ type Business = {
   createdAt: string
   featured: boolean
   featuredOrder: number | null
+  googleRating: number | null
+  googleRatingCount: number | null
 }
 
 type CategoryOption = {
@@ -54,7 +58,7 @@ const supabase = useSupabaseClient()
 const { data: businessRows } = await useAsyncData('listings', async () => {
   const { data, error } = await supabase
     .from('businesses')
-    .select('id, category_id, name, phone, website_url, bio, address, logo_path, license_number, serves_statewide, service_areas, featured, featured_order, created_at')
+    .select('id, category_id, name, phone, website_url, bio, address, logo_path, license_number, serves_statewide, service_areas, featured, featured_order, created_at, google_rating, google_rating_count')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -101,7 +105,9 @@ function toBusiness(row: BusinessRow): Business {
     serviceAreaSlugs: areas,
     createdAt: row.created_at,
     featured: row.featured,
-    featuredOrder: row.featured_order
+    featuredOrder: row.featured_order,
+    googleRating: row.google_rating,
+    googleRatingCount: row.google_rating_count
   }
 }
 
@@ -486,15 +492,15 @@ const listingsCtaLinks = [
                         </ULink>
                       </div>
 
-                      <div class="inline-flex min-w-0 items-center gap-2 text-muted">
-                        <UIcon name="i-lucide-globe" class="size-4 shrink-0 opacity-70" />
-                        <ULink
-                          class="truncate font-medium text-default hover:text-primary"
-                          :to="business.website"
-                          target="_blank"
-                        >
-                        Website
-                        </ULink>
+                      <div
+                        v-if="business.googleRatingCount"
+                        class="inline-flex min-w-0 items-center gap-1.5 text-muted"
+                      >
+                        <UIcon name="i-lucide-star" class="size-4 shrink-0 text-amber-400" />
+                        <span class="font-medium text-default">{{ business.googleRating?.toFixed(1) ?? '—' }}</span>
+                        <span class="truncate">
+                          ({{ business.googleRatingCount }} {{ business.googleRatingCount === 1 ? 'review' : 'reviews' }})
+                        </span>
                       </div>
                     </div>
                   </div>

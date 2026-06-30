@@ -17,6 +17,8 @@ type BusinessRow = {
   featured: boolean
   featured_order: number | null
   created_at: string
+  google_rating: number | null
+  google_rating_count: number | null
 }
 
 type CategoryRow = {
@@ -109,7 +111,7 @@ const { data: businessRows } = await useAsyncData(
       : 'serves_statewide.eq.true'
     const { data, error } = await supabase
       .from('businesses')
-      .select('id, name, phone, website_url, bio, address, logo_path, license_number, serves_statewide, service_areas, featured, featured_order, created_at')
+      .select('id, name, phone, website_url, bio, address, logo_path, license_number, serves_statewide, service_areas, featured, featured_order, created_at, google_rating, google_rating_count')
       .eq('status', 'published')
       .eq('category_id', category.value!.id)
       .or(orFilter)
@@ -346,32 +348,43 @@ useHead({
                 </div>
               </div>
 
-              <div class="mt-4 flex flex-col gap-2 sm:mt-auto sm:flex-row sm:justify-end sm:gap-2">
-                <UButton
-                  color="primary"
-                  variant="solid"
-                  size="md"
-                  block
-                  class="sm:w-auto"
-                  leading-icon="i-lucide-phone"
-                  :to="phoneHref(business.phone)"
+              <div class="mt-4 flex flex-col gap-3 sm:mt-auto sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                <div
+                  v-if="business.google_rating_count"
+                  class="inline-flex items-center gap-1.5 text-sm text-muted"
                 >
-                  Call
-                </UButton>
+                  <UIcon name="i-lucide-star" class="size-4 shrink-0 text-amber-400" />
+                  <span class="font-medium text-default">{{ business.google_rating?.toFixed(1) ?? '—' }}</span>
+                  <span>({{ business.google_rating_count }} {{ business.google_rating_count === 1 ? 'review' : 'reviews' }})</span>
+                </div>
 
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="md"
-                  block
-                  class="sm:w-auto"
-                  leading-icon="i-lucide-external-link"
-                  :to="business.website_url"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  Website
-                </UButton>
+                <div class="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    size="md"
+                    block
+                    class="sm:w-auto"
+                    leading-icon="i-lucide-phone"
+                    :to="phoneHref(business.phone)"
+                  >
+                    Call
+                  </UButton>
+
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    size="md"
+                    block
+                    class="sm:w-auto"
+                    leading-icon="i-lucide-external-link"
+                    :to="business.website_url"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Website
+                  </UButton>
+                </div>
               </div>
             </div>
           </div>
