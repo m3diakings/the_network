@@ -19,6 +19,17 @@ const mobileMenuItems = [
   { label: 'Blog', to: '/blog' },
   { label: 'Business Application', to: '/submit-business', primary: true }
 ]
+
+const supabase = useSupabaseClient()
+
+const { data: footerCategories } = await useAsyncData('footer-categories', async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('slug, name, sort_order')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as { slug: string, name: string, sort_order: number }[]
+})
 </script>
 
 <template>
@@ -120,7 +131,7 @@ const mobileMenuItems = [
 
     <footer v-if="!isAdminRoute" class="mt-10 bg-elevated">
       <UContainer class="pt-16 pb-10 sm:pt-20 sm:pb-12">
-        <div class="grid gap-8 md:grid-cols-3">
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <NuxtLink
               to="/"
@@ -148,6 +159,20 @@ const mobileMenuItems = [
             </NuxtLink>
             <NuxtLink to="/submit-business" class="text-default hover:text-primary">
               Submit
+            </NuxtLink>
+          </div>
+
+          <div class="flex flex-col gap-2 text-sm">
+            <p class="text-xs font-bold uppercase tracking-wide text-muted">
+              Trades
+            </p>
+            <NuxtLink
+              v-for="category in footerCategories ?? []"
+              :key="category.slug"
+              :to="`/${category.slug}`"
+              class="text-default hover:text-primary"
+            >
+              {{ category.name }}
             </NuxtLink>
           </div>
 
