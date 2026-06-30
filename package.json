@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "scrape:google": "node --env-file=.env --import tsx scripts/scrape-google-businesses.ts",
     "backfill:bios": "node --env-file=.env --import tsx scripts/backfill-listing-bios.ts",
-    "backfill:reviews": "node --env-file=.env --import tsx scripts/backfill-google-reviews.ts"
+    "backfill:reviews": "node --env-file=.env --import tsx scripts/backfill-google-reviews.ts",
+    "backfill:service-areas": "node --env-file=.env --import tsx scripts/backfill-service-areas.ts"
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",
