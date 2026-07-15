@@ -298,7 +298,7 @@ useHead({
           }"
         >
           <div class="flex flex-col sm:h-60 sm:flex-row sm:items-stretch">
-            <div class="relative h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-44 sm:min-w-44 md:w-52 md:min-w-52">
+            <div class="relative h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-60 sm:min-w-60 md:w-60 md:min-w-60">
               <NuxtImg
                 :src="logoUrl(business.logo_path)"
                 :alt="`${business.name} logo`"
