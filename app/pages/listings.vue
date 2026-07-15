@@ -37,7 +37,7 @@ type Business = {
   website: string
   bio: string
   address: string
-  logo: string
+  logo: string | null
   licenseNumber: string | null
   servesStatewide: boolean
   serviceAreaSlugs: string[]
@@ -84,7 +84,7 @@ const { data: cityRows } = await useAsyncData('listings-cities', async () => {
 })
 
 function logoUrl(path: string | null) {
-  if (!path) return 'https://placehold.co/88x88/64748b/ffffff?text=Logo'
+  if (!path) return null
   const { data } = supabase.storage.from('business-logos').getPublicUrl(path)
   return data.publicUrl
 }
@@ -442,6 +442,7 @@ const listingsCtaLinks = [
               <div class="flex flex-col sm:h-60 sm:flex-row sm:items-stretch">
                 <div class="h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-60 sm:min-w-60 md:w-60 md:min-w-60">
                   <NuxtImg
+                    v-if="business.logo"
                     :src="business.logo"
                     :alt="`${business.name} logo`"
                     class="h-full w-full max-w-full object-cover"
@@ -450,6 +451,9 @@ const listingsCtaLinks = [
                     sizes="100vw sm:176px md:208px"
                     loading="lazy"
                   />
+                  <div v-else class="grid size-full place-items-center text-muted">
+                    <UIcon name="i-lucide-building-2" class="size-14 opacity-40" />
+                  </div>
                 </div>
 
                 <div class="flex min-w-0 flex-1 flex-col px-5 py-5">
@@ -575,12 +579,19 @@ const listingsCtaLinks = [
                 >
                   <div class="flex items-start gap-3">
                     <NuxtImg
+                      v-if="business.logo"
                       :src="business.logo"
                       :alt="`${business.name} logo`"
                       class="size-14 rounded-lg object-contain p-1"
                       width="112"
                       loading="lazy"
                     />
+                    <div
+                      v-else
+                      class="grid size-14 shrink-0 place-items-center rounded-lg bg-elevated text-muted"
+                    >
+                      <UIcon name="i-lucide-building-2" class="size-8 opacity-40" />
+                    </div>
 
                     <div class="min-w-0">
                       <p class="truncate text-sm font-semibold text-highlighted">

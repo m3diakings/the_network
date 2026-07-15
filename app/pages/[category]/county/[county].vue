@@ -137,7 +137,7 @@ const { data: siblingCategories } = await useAsyncData(
 )
 
 function logoUrl(path: string | null) {
-  if (!path) return 'https://placehold.co/88x88/64748b/ffffff?text=Logo'
+  if (!path) return null
   const { data } = supabase.storage.from('business-logos').getPublicUrl(path)
   return data.publicUrl
 }
@@ -300,6 +300,7 @@ useHead({
           <div class="flex flex-col sm:h-60 sm:flex-row sm:items-stretch">
             <div class="relative h-52 w-full flex-none overflow-hidden bg-elevated sm:h-auto sm:w-60 sm:min-w-60 md:w-60 md:min-w-60">
               <NuxtImg
+                v-if="business.logo_path"
                 :src="logoUrl(business.logo_path)"
                 :alt="`${business.name} logo`"
                 class="absolute inset-0 size-full object-cover"
@@ -307,6 +308,9 @@ useHead({
                 sizes="100vw sm:176px md:208px"
                 loading="lazy"
               />
+              <div v-else class="absolute inset-0 grid place-items-center text-muted">
+                <UIcon name="i-lucide-building-2" class="size-14 opacity-40" />
+              </div>
             </div>
 
             <div class="flex min-w-0 flex-1 flex-col px-5 py-5">
