@@ -23,12 +23,51 @@ type CategoryQuery = { slug: string; query: string }
 const LOGO_BUCKET = 'business-logos'
 const LOGO_MAX_HEIGHT_PX = 800
 
-const CATEGORIES: CategoryQuery[] = [
-  { slug: 'plumbing', query: 'plumbers in Florida' },
-  { slug: 'electrical', query: 'electricians in Florida' },
-  { slug: 'hvac', query: 'HVAC contractors in Florida' },
-  { slug: 'roofing', query: 'roofing contractors in Florida' },
+// Trade searches are run once per metro below. Google's text search has no
+// usable pagination here (max ~20 results), so we widen coverage by varying
+// the location rather than paging. Dedup on google_place_id makes overlap safe.
+const TRADES: { slug: string; term: string }[] = [
+  { slug: 'plumbing', term: 'plumbers' },
+  { slug: 'electrical', term: 'electricians' },
+  { slug: 'hvac', term: 'HVAC contractors' },
+  { slug: 'roofing', term: 'roofing contractors' },
 ]
+
+// South Florida tri-county coverage (Miami-Dade, Broward, Palm Beach). Per-city
+// searches surface businesses the statewide search never returned.
+const METROS: string[] = [
+  // Miami-Dade
+  'Miami FL',
+  'Hialeah FL',
+  'Doral FL',
+  'Homestead FL',
+  'Kendall FL',
+  'Aventura FL',
+  'North Miami FL',
+  'Cutler Bay FL',
+  'Miami Gardens FL',
+  // Broward (next batch)
+  // 'Fort Lauderdale FL',
+  // 'Hollywood FL',
+  // 'Pembroke Pines FL',
+  // 'Miramar FL',
+  // 'Coral Springs FL',
+  // 'Pompano Beach FL',
+  // 'Davie FL',
+  // 'Plantation FL',
+  // 'Sunrise FL',
+  // 'Deerfield Beach FL',
+  // Palm Beach (next batch)
+  // 'West Palm Beach FL',
+  // 'Boca Raton FL',
+  // 'Boynton Beach FL',
+  // 'Delray Beach FL',
+  // 'Jupiter FL',
+]
+
+const CATEGORIES: CategoryQuery[] = METROS.flatMap((metro) =>
+  TRADES.map((t) => ({ slug: t.slug, query: `${t.term} in ${metro}` })),
+)
 
 const PAGE_SIZE = 20
 
@@ -278,7 +317,7 @@ async function main() {
 
   for (const { slug, query } of CATEGORIES) {
     const stats = emptyStats()
-    overall[slug] = stats
+    overall[query] = stats
     const categoryId = categoryIdBySlug.get(slug)!
 
     console.log(`→ ${slug}: "${query}"`)
