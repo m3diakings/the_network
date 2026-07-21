@@ -212,19 +212,9 @@ useSeoMeta({
           v-html="post.content.rendered"
         />
 
-        <footer class="mt-12 flex flex-col items-start justify-between gap-3 border-t border-default pt-6 sm:flex-row sm:items-center">
+        <footer class="mt-12 border-t border-default pt-6">
           <UButton to="/blog" color="neutral" variant="ghost" icon="i-lucide-arrow-left">
             All posts
-          </UButton>
-          <UButton
-            :to="post.link"
-            target="_blank"
-            rel="noopener"
-            color="neutral"
-            variant="outline"
-            trailing-icon="i-lucide-external-link"
-          >
-            View on Florida Trade Specialists
           </UButton>
         </footer>
       </article>
