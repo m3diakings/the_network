@@ -53,8 +53,18 @@ export default defineNuxtConfig({
     exclude: ['/admin/**']
   },
   routeRules: {
-    '/blog/**': { swr: 1800 },
+    // Blog data comes from an external WordPress API, so keep the stale-while-
+    // revalidate window short — a transient upstream blip that gets cached
+    // clears in ~10 min instead of 30. Cover both the index and post routes.
+    '/blog': { swr: 600 },
+    '/blog/**': { swr: 600 },
     '/admin/**': { robots: false, index: false }
+  },
+  experimental: {
+    // On redeploy, a stale tab/CDN copy can reference old hashed chunks that no
+    // longer exist and 404. Reload the app automatically when a route chunk
+    // fails to load instead of dead-ending the user.
+    emitRouteChunkError: 'automatic'
   },
   runtimeConfig: {
     turnstileSecretKey: '',
