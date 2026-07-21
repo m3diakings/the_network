@@ -138,6 +138,15 @@ type SortId = (typeof sortOptions)[number]['id']
 const route = useRoute()
 const router = useRouter()
 
+// Filtering/pagination happens via query params (?category, ?city, ?page) on a
+// single client-side page, so every variant serves the same content and title.
+// Canonicalize them all to the clean /listings URL to avoid duplicate-title and
+// duplicate-content flags; real trade/city landing pages live at /[category]/*.
+const canonicalUrl = computed(() => `${useRequestURL().origin}/listings`)
+useHead({
+  link: [{ rel: 'canonical', href: canonicalUrl }]
+})
+
 function categoryIdFromSlug(slug: string | undefined) {
   if (!slug) return 'all'
   const match = (categoryRows.value ?? []).find(row => row.slug === slug)
