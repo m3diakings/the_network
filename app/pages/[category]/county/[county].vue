@@ -180,6 +180,18 @@ useHead({
 
 const jsonLd = computed(() => {
   const rows = businessRows.value ?? []
+  const breadcrumbs = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteOrigin}/` },
+      { '@type': 'ListItem', position: 2, name: category.value!.name, item: `${siteOrigin}/${categorySlug.value}` },
+      { '@type': 'ListItem', position: 3, name: `${county.value!.name} County`, item: canonicalUrl.value }
+    ]
+  }
+  // Google/Semrush read an ItemList as a Carousel rich result and reject an
+  // empty itemListElement, so only emit it when the page actually has listings.
+  if (rows.length === 0) return [breadcrumbs]
   const itemList = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -202,15 +214,6 @@ const jsonLd = computed(() => {
         areaServed: b.serves_statewide ? 'Florida' : `${county.value!.name} County`
       }
     }))
-  }
-  const breadcrumbs = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteOrigin}/` },
-      { '@type': 'ListItem', position: 2, name: category.value!.name, item: `${siteOrigin}/${categorySlug.value}` },
-      { '@type': 'ListItem', position: 3, name: `${county.value!.name} County`, item: canonicalUrl.value }
-    ]
   }
   return [itemList, breadcrumbs]
 })
