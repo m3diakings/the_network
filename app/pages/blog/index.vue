@@ -49,7 +49,10 @@ const { data: postsData, error: postsError, pending: postsPending } = await useA
         per_page: PER_PAGE,
         page: currentPage.value,
         _embed: 1
-      }
+      },
+      timeout: 8000,
+      retry: 2,
+      retryDelay: 300
     })
     return {
       posts: response._data ?? [],

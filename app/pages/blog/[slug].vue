@@ -37,7 +37,10 @@ const { data: post, error: postError, pending: postPending } = await useAsyncDat
       params: {
         slug: slug.value,
         _embed: 1
-      }
+      },
+      timeout: 8000,
+      retry: 2,
+      retryDelay: 300
     })
     return list?.[0] ?? null
   },
