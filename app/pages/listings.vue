@@ -142,9 +142,9 @@ const router = useRouter()
 // single client-side page, so every variant serves the same content and title.
 // Canonicalize them all to the clean /listings URL to avoid duplicate-title and
 // duplicate-content flags; real trade/city landing pages live at /[category]/*.
-const canonicalUrl = computed(() => `${useRequestURL().origin}/listings`)
+const siteOrigin = useRequestURL().origin
 useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }]
+  link: [{ rel: 'canonical', href: `${siteOrigin}/listings` }]
 })
 
 function categoryIdFromSlug(slug: string | undefined) {
