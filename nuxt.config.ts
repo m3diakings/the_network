@@ -45,7 +45,9 @@ export default defineNuxtConfig({
     redirect: false
   },
   site: {
-    url: 'https://floridatradespecialists.com',
+    // Use the canonical www domain — the non-www host 307-redirects here, and
+    // all runtime canonicals resolve to www, so the sitemap and og:url must too.
+    url: 'https://www.floridatradespecialists.com',
     name: 'Florida Trade Specialists'
   },
   sitemap: {
