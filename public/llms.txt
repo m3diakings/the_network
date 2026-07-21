@@ -1,0 +1,35 @@
+# Florida Trade Specialists
+
+> Florida's directory of verified, licensed trade professionals — plumbers, electricians, HVAC techs, roofers, and general contractors. Always free for homeowners, with tap-to-call listings and no lead forms or middlemen.
+
+Florida Trade Specialists helps Florida homeowners find and directly contact licensed, insured trade pros. Every listing shows verified credentials (including state license numbers) and connects homeowners straight to the business by phone — the site never sells leads or inserts itself between homeowners and contractors. Standard listings are free and are reviewed before they are published. Coverage is limited to the state of Florida, USA.
+
+## Main pages
+
+- [Home](https://www.floridatradespecialists.com/): Overview of the directory and how it works.
+- [Directory / Listings](https://www.floridatradespecialists.com/listings): Full searchable directory of businesses, filterable by trade and Florida city.
+- [Blog](https://www.floridatradespecialists.com/blog): Guides on hiring contractors, hurricane prep, roof repair, leak detection, and home maintenance.
+- [FAQ](https://www.floridatradespecialists.com/faq): Common questions about the directory, verification, and using listings.
+- [List your business](https://www.floridatradespecialists.com/submit-business): Application form for trade businesses to join the directory.
+
+## Trades
+
+- [Plumbing](https://www.floridatradespecialists.com/plumbing): Licensed Florida plumbers.
+- [Electrical](https://www.floridatradespecialists.com/electrical): Licensed Florida electricians.
+- [HVAC](https://www.floridatradespecialists.com/hvac): Licensed Florida heating and air conditioning pros.
+- [Roofing](https://www.floridatradespecialists.com/roofing): Licensed Florida roofers.
+- [General Contractor](https://www.floridatradespecialists.com/general-contractor): Licensed Florida general contractors.
+- [Code Compliance & Permit Expediting](https://www.floridatradespecialists.com/code-compliance-permit-expediting): Permit and code-compliance specialists.
+
+## Browsing by location
+
+Each trade can be browsed statewide or narrowed to a specific place:
+
+- By city: `https://www.floridatradespecialists.com/{trade}/{city-slug}` — e.g. https://www.floridatradespecialists.com/electrical/miami
+- By county: `https://www.floridatradespecialists.com/{trade}/county/{county-slug}` — e.g. https://www.floridatradespecialists.com/electrical/county/miami-dade
+
+## Notes
+
+- Listings are free for homeowners to browse — no paywalls and no lead-capture forms.
+- Business credentials are verified before a listing is published.
+- A complete, machine-readable list of URLs is available in the [sitemap](https://www.floridatradespecialists.com/sitemap.xml).
