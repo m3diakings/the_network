@@ -55,12 +55,21 @@ export default defineNuxtConfig({
     exclude: ['/admin/**']
   },
   routeRules: {
-    // Blog data comes from an external WordPress API, so keep the stale-while-
-    // revalidate window short — a transient upstream blip that gets cached
-    // clears in ~10 min instead of 30. Cover both the index and post routes.
-    '/blog': { swr: 600 },
-    '/blog/**': { swr: 600 },
-    '/admin/**': { robots: false, index: false }
+    // Vercel ISR: each public page renders on the server at most once a day and
+    // is served from Vercel's cache in between, so crawler traffic across the
+    // ~2,800 directory pages does not run a function per request. Query strings
+    // are ignored for caching except the ones a page reads.
+    '/**': { isr: { expiration: 86400, allowQuery: [] } },
+    '/listings': { isr: { expiration: 86400, allowQuery: ['category', 'city', 'page'] } },
+    // Blog data comes from an external WordPress API, so keep the window short:
+    // a transient upstream blip that gets cached clears in ~10 min.
+    '/blog': { isr: { expiration: 600, allowQuery: ['page'] } },
+    '/blog/**': { isr: { expiration: 600, allowQuery: [] } },
+    // Signed-in and write paths always run on demand.
+    '/admin': { isr: false, robots: false, index: false },
+    '/admin/**': { isr: false, robots: false, index: false },
+    '/api/**': { isr: false },
+    '/api/__sitemap__/**': { isr: { expiration: 86400, allowQuery: [] } }
   },
   experimental: {
     // On redeploy, a stale tab/CDN copy can reference old hashed chunks that no
