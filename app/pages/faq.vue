@@ -60,7 +60,7 @@ useSeoMeta({
   twitterImage: '/images/whyus.png'
 })
 
-const siteOrigin = useRequestURL().origin
+const siteOrigin = useSiteConfig().url
 const canonicalUrl = `${siteOrigin}/faq`
 
 useHead({

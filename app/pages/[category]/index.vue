@@ -183,7 +183,7 @@ useSeoMeta({
   twitterImage: '/images/whyus.png'
 })
 
-const siteOrigin = useRequestURL().origin
+const siteOrigin = useSiteConfig().url
 
 useHead({
   link: [{ rel: 'canonical', href: computed(() => `${siteOrigin}/${categorySlug.value}`) }],

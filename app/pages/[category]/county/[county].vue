@@ -168,7 +168,7 @@ useSeoMeta({
 
 const businessCount = computed(() => (businessRows.value ?? []).length)
 
-const siteOrigin = useRequestURL().origin
+const siteOrigin = useSiteConfig().url
 
 const canonicalUrl = computed(() =>
   `${siteOrigin}/${categorySlug.value}/county/${countySlug.value}`

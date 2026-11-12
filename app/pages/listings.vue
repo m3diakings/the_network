@@ -142,7 +142,7 @@ const router = useRouter()
 // single client-side page, so every variant serves the same content and title.
 // Canonicalize them all to the clean /listings URL to avoid duplicate-title and
 // duplicate-content flags; real trade/city landing pages live at /[category]/*.
-const siteOrigin = useRequestURL().origin
+const siteOrigin = useSiteConfig().url
 useHead({
   link: [{ rel: 'canonical', href: `${siteOrigin}/listings` }]
 })
